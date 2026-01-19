@@ -1,0 +1,187 @@
+import React, { useState } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { Home, Briefcase, User, LogOut, Users, MessageCircle, Bell, Bookmark, FileText, Star, Menu, X } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const handleNavigation = (href: string) => {
+    navigate(href);
+    setIsMobileMenuOpen(false);
+  };
+
+  if (!user) {
+    return <div className="min-h-screen bg-gray-50">{children}</div>;
+  }
+
+  const isSeeker = user.role === 'seeker';
+  const isEmployer = user.role === 'employer';
+
+  const navigation = [
+    { name: 'Dashboard', href: isSeeker ? '/seeker' : '/employer', icon: Home },
+    ...(isSeeker ? [
+      { name: 'Messages', href: '/seeker/messages', icon: MessageCircle },
+      { name: 'Applications', href: '/seeker/applications', icon: Briefcase },
+      { name: 'Saved Jobs', href: '/seeker/saved', icon: Bookmark },
+      { name: 'Notifications', href: '/seeker/notifications', icon: Bell },
+    ] : []),
+    ...(isEmployer ? [
+      { name: 'Applications', href: '/employer/applications', icon: FileText },
+      { name: 'Talent Pool', href: '/employer/talent', icon: Users },
+      { name: 'Messages', href: '/employer/messages', icon: MessageCircle },
+      { name: 'Saved Candidates', href: '/employer/saved', icon: Star },
+      { name: 'Notifications', href: '/employer/notifications', icon: Bell },
+    ] : []),
+    { name: 'Profile', href: '/profile', icon: User },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile menu overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-blue-600">JobAI</h1>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-4">
+          {/* Mobile user info */}
+          <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-200">
+            <img
+              className="h-10 w-10 rounded-full"
+              src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`}
+              alt={user.name}
+            />
+            <div>
+              <p className="text-sm font-medium text-gray-900">{user.name}</p>
+              <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+            </div>
+          </div>
+          <div className="space-y-1">
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => handleNavigation(item.href)}
+                  className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 lg:h-16">
+            <div className="flex items-center">
+              {/* Hamburger menu button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+              <div className="flex-shrink-0">
+                <h1 className="text-xl lg:text-2xl font-bold text-blue-600">JobAI</h1>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <div className="hidden sm:flex items-center space-x-2">
+                <img
+                  className="h-8 w-8 rounded-full"
+                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`}
+                  alt={user.name}
+                />
+                <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="hidden lg:block text-gray-400 hover:text-gray-500 p-2"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <nav className="hidden lg:block w-64 bg-white shadow-sm min-h-screen">
+          <div className="p-4">
+            <div className="space-y-1">
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <button
+                    key={item.name}
+                    onClick={() => navigate(item.href)}
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </nav>
+
+        {/* Main content */}
+        <main className="flex-1 p-4 lg:p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
