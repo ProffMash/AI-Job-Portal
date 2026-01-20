@@ -1,89 +1,130 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User } from '../types';
+import { login as apiLogin, register as apiRegister, logout as apiLogout, RegisterData, LoginResponse } from '../API/authApi';
+import { setAuthToken } from '../API/apiClient';
 
-// Mock users for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    role: 'seeker',
-    skills: ['React', 'TypeScript', 'Node.js', 'Python'],
-    avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1',
-    bio: 'Passionate full-stack developer with 5+ years of experience building scalable web applications. Love working with modern technologies and solving complex problems.',
-    location: 'San Francisco, CA',
-    phone: '+1 (555) 123-4567',
-    experience: '5+ years',
-    education: 'BS Computer Science, Stanford University',
-    linkedin: 'https://linkedin.com/in/johndoe',
-    github: 'https://github.com/johndoe',
-    portfolio: 'https://johndoe.dev'
-  },
-  {
-    id: '2',
-    name: 'Sarah Johnson',
-    email: 'sarah@techcorp.com',
-    role: 'employer',
-    company: 'TechCorp Inc.',
-    avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1',
-    bio: 'HR Director at TechCorp Inc. with over 8 years of experience in talent acquisition and team building. Passionate about connecting great talent with amazing opportunities.',
-    location: 'New York, NY',
-    phone: '+1 (555) 987-6543',
-    website: 'https://techcorp.com',
-    companySize: '500-1000 employees',
-    industry: 'Technology',
-    founded: '2015'
-  },
-  {
-    id: '3',
-    name: 'Mike Wilson',
-    email: 'mike@example.com',
-    role: 'seeker',
-    skills: ['Java', 'Spring Boot', 'AWS', 'Docker'],
-    avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1',
-    bio: 'Backend engineer specializing in Java and cloud technologies. Experienced in building microservices and distributed systems.',
-    location: 'Austin, TX',
-    phone: '+1 (555) 456-7890',
-    experience: '3+ years',
-    education: 'MS Software Engineering, UT Austin',
-    linkedin: 'https://linkedin.com/in/mikewilson',
-    github: 'https://github.com/mikewilson'
-  }
-];
+interface ExtendedAuthState extends AuthState {
+  token: string | null;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
+  loginWithApi: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+  registerWithApi: (data: RegisterData) => Promise<{ success: boolean; user?: User; error?: string }>;
+}
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<ExtendedAuthState>()(
   persist(
     (set, get) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
+      
+      setUser: (user: User | null) => {
+        set({ user, isAuthenticated: !!user });
+      },
+      
+      setToken: (token: string | null) => {
+        set({ token });
+        setAuthToken(token);
+      },
+      
       updateProfile: (updates: Partial<User>) => {
         const { user } = get();
         if (user) {
           const updatedUser = { ...user, ...updates };
           set({ user: updatedUser });
-          // Update the mock user in the array for persistence
-          const userIndex = mockUsers.findIndex(u => u.id === user.id);
-          if (userIndex !== -1) {
-            mockUsers[userIndex] = updatedUser;
+        }
+      },
+      
+      loginWithApi: async (email: string, password: string) => {
+        try {
+          const response = await apiLogin({ email, password });
+          
+          // Map API response to User type
+          const user: User = {
+            id: String(response.id),
+            name: response.name,
+            email: response.email,
+            role: response.role,
+            skills: response.skills,
+            company: response.company,
+            avatar: response.avatar,
+            bio: response.bio,
+            location: response.location,
+            phone: response.phone,
+            website: response.website,
+            experience: response.experience,
+            education: response.education,
+            linkedin: response.linkedin,
+            github: response.github,
+            portfolio: response.portfolio,
+            companySize: response.company_size,
+            industry: response.industry,
+            founded: response.founded,
+          };
+          
+          set({ user, token: response.token, isAuthenticated: true });
+          setAuthToken(response.token);
+          
+          return { success: true, user };
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.error || 'Login failed. Please try again.';
+          return { success: false, error: errorMessage };
+        }
+      },
+      
+      registerWithApi: async (data: RegisterData) => {
+        try {
+          const response = await apiRegister(data);
+          
+          if (response.user) {
+            const user: User = {
+              id: String(response.user.id),
+              name: response.user.name,
+              email: response.user.email,
+              role: response.user.role as 'seeker' | 'employer',
+            };
+            
+            set({ user, token: response.token, isAuthenticated: true });
+            setAuthToken(response.token);
+            
+            return { success: true, user };
           }
+          
+          return { success: false, error: 'Registration failed. Please try again.' };
+        } catch (error: any) {
+          let errorMessage = 'Registration failed. Please try again.';
+          if (error.response?.data) {
+            const errorData = error.response.data;
+            if (typeof errorData === 'object') {
+              errorMessage = Object.values(errorData).flat().join('. ') || errorMessage;
+            }
+          }
+          return { success: false, error: errorMessage };
         }
       },
+      
+      // Legacy login method for compatibility
       login: async (email: string, password: string) => {
-        // Mock authentication - in real app, this would call an API
-        const user = mockUsers.find(u => u.email === email);
-        if (user && password === 'password') {
-          set({ user, isAuthenticated: true });
-          return true;
-        }
-        return false;
+        const result = await get().loginWithApi(email, password);
+        return result.success;
       },
+      
       logout: () => {
-        set({ user: null, isAuthenticated: false });
+        apiLogout();
+        set({ user: null, token: null, isAuthenticated: false });
       }
     }),
     {
-      name: 'auth-storage'
+      name: 'auth-storage',
+      onRehydrate: () => {
+        return (state) => {
+          // Restore token to axios headers on rehydration
+          if (state?.token) {
+            setAuthToken(state.token);
+          }
+        };
+      }
     }
   )
 );

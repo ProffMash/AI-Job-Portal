@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuthStore } from '../stores/authStore';
-import { useJobsStore } from '../stores/jobsStore';
-import { Job } from '../types';
-import { Plus, Briefcase, Users, Eye, X, Save, Edit2, Trash2, MapPin, Clock, DollarSign, AlertTriangle } from 'lucide-react';
+import { Plus, Briefcase, Users, Eye, X, Save, Edit2, Trash2, MapPin, Clock, DollarSign, AlertTriangle, Loader2 } from 'lucide-react';
+import { createJob, updateJob as updateJobApi, deleteJob as deleteJobApi, fetchMyJobs, Job } from '../API/jobApi';
 
 export const EmployerDashboard: React.FC = () => {
   const { user } = useAuthStore();
-  const { jobs, getApplicationsForEmployer, addJob, updateJob, deleteJob } = useJobsStore();
+  
+  // Jobs state from API
+  const [employerJobs, setEmployerJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Modal states
   const [showJobModal, setShowJobModal] = useState(false);
@@ -15,9 +19,26 @@ export const EmployerDashboard: React.FC = () => {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [deletingJob, setDeletingJob] = useState<Job | null>(null);
 
-  const employerJobs = jobs.filter(job => job.postedBy === user?.id);
-  const applications = getApplicationsForEmployer(user?.id || '');
-  const totalApplicants = employerJobs.reduce((sum, job) => sum + job.applicantCount, 0);
+  const totalApplicants = employerJobs.reduce((sum, job) => sum + job.applicant_count, 0);
+
+  // Fetch employer's jobs on mount
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  const loadJobs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const jobs = await fetchMyJobs();
+      setEmployerJobs(jobs);
+    } catch (err) {
+      setError('Failed to load jobs. Please try again.');
+      console.error('Error loading jobs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -30,13 +51,13 @@ export const EmployerDashboard: React.FC = () => {
     type: 'full-time' as 'full-time' | 'part-time' | 'contract' | 'remote'
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -49,7 +70,7 @@ export const EmployerDashboard: React.FC = () => {
     if (!formData.description.trim()) newErrors.description = 'Job description is required';
     if (!formData.requirements.trim()) newErrors.requirements = 'Requirements are required';
 
-    setErrors(newErrors);
+    setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -63,7 +84,7 @@ export const EmployerDashboard: React.FC = () => {
       salary: '',
       type: 'full-time'
     });
-    setErrors({});
+    setFormErrors({});
     setEditingJob(null);
   };
 
@@ -85,7 +106,7 @@ export const EmployerDashboard: React.FC = () => {
       salary: job.salary || '',
       type: job.type
     });
-    setErrors({});
+    setFormErrors({});
     setShowJobModal(true);
   };
 
@@ -96,7 +117,7 @@ export const EmployerDashboard: React.FC = () => {
   };
 
   // Handle form submission (create or update)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
@@ -106,41 +127,61 @@ export const EmployerDashboard: React.FC = () => {
       .map(req => req.trim())
       .filter(req => req.length > 0);
 
-    if (editingJob) {
-      // Update existing job
-      updateJob(editingJob.id, {
-        title: formData.title,
-        company: formData.company,
-        location: formData.location,
-        description: formData.description,
-        requirements: requirementsArray,
-        salary: formData.salary || undefined,
-        type: formData.type
-      });
-    } else {
-      // Create new job
-      addJob({
-        title: formData.title,
-        company: formData.company,
-        location: formData.location,
-        description: formData.description,
-        requirements: requirementsArray,
-        salary: formData.salary || undefined,
-        type: formData.type,
-        postedBy: user?.id || ''
-      });
-    }
+    try {
+      setSubmitting(true);
+      setError(null);
 
-    setShowJobModal(false);
-    resetForm();
+      if (editingJob) {
+        // Update existing job via API
+        await updateJobApi(editingJob.id, {
+          title: formData.title,
+          company: formData.company,
+          location: formData.location,
+          description: formData.description,
+          requirements: requirementsArray,
+          salary: formData.salary || undefined,
+          type: formData.type
+        });
+      } else {
+        // Create new job via API
+        await createJob({
+          title: formData.title,
+          company: formData.company,
+          location: formData.location,
+          description: formData.description,
+          requirements: requirementsArray,
+          salary: formData.salary || undefined,
+          type: formData.type
+        });
+      }
+
+      // Refresh jobs list
+      await loadJobs();
+      setShowJobModal(false);
+      resetForm();
+    } catch (err) {
+      setError(editingJob ? 'Failed to update job. Please try again.' : 'Failed to create job. Please try again.');
+      console.error('Error saving job:', err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Handle delete confirmation
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingJob) {
-      deleteJob(deletingJob.id);
-      setShowDeleteModal(false);
-      setDeletingJob(null);
+      try {
+        setSubmitting(true);
+        await deleteJobApi(deletingJob.id);
+        await loadJobs();
+        setShowDeleteModal(false);
+        setDeletingJob(null);
+      } catch (err) {
+        setError('Failed to delete job. Please try again.');
+        console.error('Error deleting job:', err);
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -154,7 +195,8 @@ export const EmployerDashboard: React.FC = () => {
     setDeletingJob(null);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -218,47 +260,16 @@ export const EmployerDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Pending Reviews</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {applications.filter(app => app.status === 'pending').length}
-                </p>
+                <p className="text-2xl font-bold text-gray-900">0</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent Applications */}
-        {applications.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Applications</h2>
-            <div className="space-y-4">
-              {applications.slice(0, 5).map((application) => {
-                const job = jobs.find(j => j.id === application.jobId);
-                return (
-                  <div key={application.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{application.seekerName}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 truncate">Applied for: {job?.title}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(application.appliedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        application.status === 'reviewed' ? 'bg-blue-100 text-blue-800' :
-                        application.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {application.status}
-                      </span>
-                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                        View
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
           </div>
         )}
 
@@ -267,6 +278,11 @@ export const EmployerDashboard: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Job Postings</h2>
         </div>
 
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          </div>
+        ) : (
         <div className="space-y-6">
           {employerJobs.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
@@ -296,7 +312,7 @@ export const EmployerDashboard: React.FC = () => {
                       </div>
                       <div className="flex items-center">
                         <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        {formatDate(job.postedAt)}
+                        {formatDate(job.posted_at)}
                       </div>
                       {job.salary && (
                         <div className="flex items-center">
@@ -317,7 +333,7 @@ export const EmployerDashboard: React.FC = () => {
                     </span>
                     <div className="flex items-center text-gray-500 text-xs sm:text-sm">
                       <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      {job.applicantCount} applicants
+                      {job.applicant_count} applicants
                     </div>
                   </div>
                 </div>
@@ -363,6 +379,7 @@ export const EmployerDashboard: React.FC = () => {
             ))
           )}
         </div>
+        )}
       </div>
 
       {/* Create/Edit Job Modal */}
@@ -399,11 +416,11 @@ export const EmployerDashboard: React.FC = () => {
                     value={formData.title}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.title ? 'border-red-300' : 'border-gray-300'
+                      formErrors.title ? 'border-red-300' : 'border-gray-300'
                     }`}
                     placeholder="e.g. Senior React Developer"
                   />
-                  {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+                  {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
                 </div>
 
                 <div>
@@ -417,11 +434,11 @@ export const EmployerDashboard: React.FC = () => {
                     value={formData.company}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.company ? 'border-red-300' : 'border-gray-300'
+                      formErrors.company ? 'border-red-300' : 'border-gray-300'
                     }`}
                     placeholder="e.g. TechCorp Inc."
                   />
-                  {errors.company && <p className="mt-1 text-sm text-red-600">{errors.company}</p>}
+                  {formErrors.company && <p className="mt-1 text-sm text-red-600">{formErrors.company}</p>}
                 </div>
               </div>
 
@@ -437,11 +454,11 @@ export const EmployerDashboard: React.FC = () => {
                     value={formData.location}
                     onChange={handleChange}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.location ? 'border-red-300' : 'border-gray-300'
+                      formErrors.location ? 'border-red-300' : 'border-gray-300'
                     }`}
                     placeholder="e.g. San Francisco, CA or Remote"
                   />
-                  {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
+                  {formErrors.location && <p className="mt-1 text-sm text-red-600">{formErrors.location}</p>}
                 </div>
 
                 <div>
@@ -489,11 +506,11 @@ export const EmployerDashboard: React.FC = () => {
                   value={formData.description}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.description ? 'border-red-300' : 'border-gray-300'
+                    formErrors.description ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Describe the role, responsibilities, and what you're looking for in a candidate..."
                 />
-                {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+                {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
               </div>
 
               <div>
@@ -507,11 +524,11 @@ export const EmployerDashboard: React.FC = () => {
                   value={formData.requirements}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.requirements ? 'border-red-300' : 'border-gray-300'
+                    formErrors.requirements ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="List the required skills, experience, and qualifications (comma-separated)"
                 />
-                {errors.requirements && <p className="mt-1 text-sm text-red-600">{errors.requirements}</p>}
+                {formErrors.requirements && <p className="mt-1 text-sm text-red-600">{formErrors.requirements}</p>}
                 <p className="mt-1 text-sm text-gray-500">
                   Separate each requirement with a comma (e.g. React, TypeScript, 3+ years experience)
                 </p>
@@ -521,15 +538,21 @@ export const EmployerDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCloseJobModal}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  disabled={submitting}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                  disabled={submitting}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
                 >
-                  <Save className="mr-2 h-4 w-4" />
+                  {submitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   {editingJob ? 'Save Changes' : 'Post Job'}
                 </button>
               </div>
@@ -556,7 +579,7 @@ export const EmployerDashboard: React.FC = () => {
                 "{deletingJob.title}"
               </p>
               <p className="text-sm text-gray-500 text-center mb-6">
-                This action cannot be undone. All {deletingJob.applicantCount} applications for this job will also be removed.
+                This action cannot be undone. All {deletingJob.applicant_count} applications for this job will also be removed.
               </p>
               <div className="flex space-x-4">
                 <button
