@@ -25,8 +25,44 @@ SECRET_KEY = 'django-insecure-_tdk8_v**-gcfwww!#qf3n^9(*1m+d6-b#ko=ryu@$3+mb3%xp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ 
+    'localhost',
+    '127.0.0.1',
+]
 
+# CORS Settings - Fixed the frontend domain typo
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173'
+]
+
+# Additional CORS settings for preflight requests
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CSRF settings to match CORS
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173'
+]
 
 # Application definition
 
