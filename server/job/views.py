@@ -1,17 +1,21 @@
 from django.shortcuts import render
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 
-from .models import User
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from .models import User, Job
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, JobSerializer
 
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -33,6 +37,8 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -75,6 +81,7 @@ class LoginView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [TokenAuthentication]
 
     def get_permissions(self):
         if self.action in ['list', 'destroy']:
@@ -120,4 +127,96 @@ class UserViewSet(viewsets.ModelViewSet):
         """Get all employers"""
         employers = User.objects.filter(role='employer', is_active=True)
         serializer = self.get_serializer(employers, many=True)
+        return Response(serializer.data)
+
+
+class JobViewSet(viewsets.ModelViewSet):
+    queryset = Job.objects.all()
+    serializer_class = JobSerializer
+    authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'search', 'by_employer']:
+            return [AllowAny()]
+        elif self.action in ['create']:
+            # Only employers can create jobs
+            return [IsAuthenticated()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            # Only the job owner can update/delete
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get_queryset(self):
+        queryset = Job.objects.all()
+        
+        # Filter by job type
+        job_type = self.request.query_params.get('type', None)
+        if job_type:
+            queryset = queryset.filter(type=job_type)
+        
+        # Filter by location
+        location = self.request.query_params.get('location', None)
+        if location:
+            queryset = queryset.filter(location__icontains=location)
+        
+        # Filter by company
+        company = self.request.query_params.get('company', None)
+        if company:
+            queryset = queryset.filter(company__icontains=company)
+        
+        # Search in title and description
+        search = self.request.query_params.get('search', None)
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(description__icontains=search)
+            )
+        
+        return queryset
+
+    def perform_create(self, serializer):
+        # Ensure only employers can create jobs
+        if self.request.user.role != 'employer':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Only employers can post jobs')
+        serializer.save(posted_by=self.request.user)
+
+    def perform_update(self, serializer):
+        # Ensure only the job owner can update
+        if serializer.instance.posted_by != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('You can only update your own jobs')
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        # Ensure only the job owner can delete
+        if instance.posted_by != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('You can only delete your own jobs')
+        instance.delete()
+
+    @action(detail=False, methods=['get'])
+    def my_jobs(self, request):
+        """Get jobs posted by the current employer"""
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        jobs = Job.objects.filter(posted_by=request.user)
+        serializer = self.get_serializer(jobs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def by_employer(self, request):
+        """Get jobs by a specific employer"""
+        employer_id = request.query_params.get('employer_id', None)
+        if not employer_id:
+            return Response({'error': 'employer_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        jobs = Job.objects.filter(posted_by_id=employer_id)
+        serializer = self.get_serializer(jobs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def recent(self, request):
+        """Get recent jobs (last 10)"""
+        jobs = Job.objects.all()[:10]
+        serializer = self.get_serializer(jobs, many=True)
         return Response(serializer.data)

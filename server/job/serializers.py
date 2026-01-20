@@ -69,3 +69,25 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'email', 'created_at']
 
+
+from .models import Job
+
+
+class JobSerializer(serializers.ModelSerializer):
+    posted_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    posted_by_details = UserSerializer(source='posted_by', read_only=True)
+
+    class Meta:
+        model = Job
+        fields = [
+            'id', 'title', 'company', 'location', 'description',
+            'requirements', 'salary', 'type', 'posted_by', 'posted_by_details',
+            'posted_at', 'applicant_count'
+        ]
+        read_only_fields = ['id', 'posted_by', 'posted_at', 'applicant_count']
+
+    def create(self, validated_data):
+        # Set the posted_by to the current user
+        validated_data['posted_by'] = self.context['request'].user
+        return super().create(validated_data)
+
