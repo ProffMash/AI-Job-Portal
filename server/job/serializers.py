@@ -57,6 +57,12 @@ class LoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False, allow_null=True)
+    skills = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        required=False,
+        allow_empty=True,
+        default=list
+    )
 
     class Meta:
         model = User
@@ -68,6 +74,60 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active', 'created_at'
         ]
         read_only_fields = ['id', 'email', 'created_at']
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """Serializer for user profile with additional validation"""
+    avatar = serializers.ImageField(required=False, allow_null=True)
+    skills = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        required=False,
+        allow_empty=True
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'email', 'username', 'name', 'role',
+            'avatar', 'bio', 'location', 'phone', 'website',
+            'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio',
+            'company', 'company_size', 'industry', 'founded',
+            'is_active', 'created_at'
+        ]
+        read_only_fields = ['id', 'email', 'role', 'created_at', 'is_active']
+
+    def validate_skills(self, value):
+        """Ensure skills is a list of strings"""
+        if value and not isinstance(value, list):
+            raise serializers.ValidationError('Skills must be a list')
+        return value
+
+    def validate_phone(self, value):
+        """Basic phone validation"""
+        if value:
+            # Remove common formatting characters for validation
+            cleaned = ''.join(c for c in value if c.isdigit() or c == '+')
+            if len(cleaned) < 7:
+                raise serializers.ValidationError('Phone number is too short')
+        return value
+
+    def validate_website(self, value):
+        """Basic website URL validation"""
+        if value and not value.startswith(('http://', 'https://')):
+            value = 'https://' + value
+        return value
+
+    def validate_linkedin(self, value):
+        """Validate LinkedIn URL"""
+        if value and 'linkedin.com' not in value.lower():
+            raise serializers.ValidationError('Please provide a valid LinkedIn URL')
+        return value
+
+    def validate_github(self, value):
+        """Validate GitHub URL"""
+        if value and 'github.com' not in value.lower():
+            raise serializers.ValidationError('Please provide a valid GitHub URL')
+        return value
 
 
 from .models import Job

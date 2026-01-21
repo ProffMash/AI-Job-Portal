@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 
 from .models import User, Job
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, JobSerializer
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, ProfileSerializer, JobSerializer
 
 
 class RegisterView(APIView):
@@ -127,6 +127,126 @@ class UserViewSet(viewsets.ModelViewSet):
         """Get all employers"""
         employers = User.objects.filter(role='employer', is_active=True)
         serializer = self.get_serializer(employers, many=True)
+        return Response(serializer.data)
+
+
+class ProfileViewSet(viewsets.ViewSet):
+    """ViewSet for managing user profiles"""
+    authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        if self.action in ['seekers', 'employers']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_serializer(self, *args, **kwargs):
+        return ProfileSerializer(*args, **kwargs)
+
+    def list(self, request):
+        """Get the current user's profile"""
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get', 'put', 'patch'], url_path='me')
+    def me(self, request):
+        """Get or update the current user's profile"""
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        
+        partial = request.method == 'PATCH'
+        serializer = self.get_serializer(request.user, data=request.data, partial=partial)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['patch'], url_path='skills')
+    def update_skills(self, request):
+        """Update user skills (seekers only)"""
+        user = request.user
+        if user.role != 'seeker':
+            return Response(
+                {'error': 'Only job seekers can update skills'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        skills = request.data.get('skills', [])
+        if not isinstance(skills, list):
+            return Response(
+                {'error': 'Skills must be a list'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.skills = skills
+        user.save()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['patch'], url_path='company')
+    def update_company(self, request):
+        """Update company info (employers only)"""
+        user = request.user
+        if user.role != 'employer':
+            return Response(
+                {'error': 'Only employers can update company info'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        allowed_fields = ['company', 'company_size', 'industry', 'founded', 'website']
+        update_data = {k: v for k, v in request.data.items() if k in allowed_fields}
+        
+        serializer = self.get_serializer(user, data=update_data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], url_path='avatar')
+    def upload_avatar(self, request):
+        """Upload user avatar"""
+        user = request.user
+        
+        if 'avatar' not in request.FILES:
+            return Response(
+                {'error': 'No avatar file provided'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        avatar = request.FILES['avatar']
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        if avatar.content_type not in allowed_types:
+            return Response(
+                {'error': 'Invalid file type. Allowed: JPEG, PNG, GIF, WEBP'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate file size (max 5MB)
+        if avatar.size > 5 * 1024 * 1024:
+            return Response(
+                {'error': 'File too large. Maximum size is 5MB'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        user.avatar = avatar
+        user.save()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def seekers(self, request):
+        """Get all job seekers"""
+        seekers = User.objects.filter(role='seeker', is_active=True)
+        serializer = UserSerializer(seekers, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def employers(self, request):
+        """Get all employers"""
+        employers = User.objects.filter(role='employer', is_active=True)
+        serializer = UserSerializer(employers, many=True)
         return Response(serializer.data)
 
 
