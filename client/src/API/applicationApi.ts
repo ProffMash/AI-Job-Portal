@@ -95,3 +95,8 @@ export const getAllApplications = async (): Promise<ApplicationResponse[]> => {
 export const withdrawApplication = async (applicationId: number): Promise<void> => {
   await apiClient.delete(`/applications/${applicationId}/`);
 };
+
+// Delete an application (employer only)
+export const deleteApplication = async (applicationId: number): Promise<void> => {
+  await apiClient.delete(`/applications/${applicationId}/`);
+};

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle } from 'lucide-react';
-import { getAllApplications, updateApplicationStatus, ApplicationResponse } from '../API/applicationApi';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3 } from 'lucide-react';
+import { getAllApplications, updateApplicationStatus, deleteApplication, ApplicationResponse } from '../API/applicationApi';
 import { fetchMyJobs, Job } from '../API/jobApi';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
@@ -12,6 +12,8 @@ export const ManageApplications: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus>('all');
   const [jobFilter, setJobFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
@@ -45,11 +47,28 @@ export const ManageApplications: React.FC = () => {
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? updated : app
       ));
+      setEditingStatusId(null);
     } catch (err) {
       console.error('Failed to update status:', err);
       alert('Failed to update application status. Please try again.');
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const handleDelete = async (applicationId: number) => {
+    if (!confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      setDeletingId(applicationId);
+      await deleteApplication(applicationId);
+      setApplications(prev => prev.filter(app => app.id !== applicationId));
+    } catch (err) {
+      console.error('Failed to delete application:', err);
+      alert('Failed to delete application. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -274,10 +293,34 @@ export const ManageApplications: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:space-y-2">
-                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium capitalize flex items-center ${getStatusColor(application.status)}`}>
-                          {getStatusIcon(application.status)}
-                          <span className="ml-1">{application.status}</span>
-                        </span>
+                        <div className="relative">
+                          <button
+                            onClick={() => setEditingStatusId(editingStatusId === application.id ? null : application.id)}
+                            className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium capitalize flex items-center ${getStatusColor(application.status)} hover:opacity-80 transition-opacity cursor-pointer`}
+                          >
+                            {getStatusIcon(application.status)}
+                            <span className="ml-1">{application.status}</span>
+                            <Edit3 className="h-3 w-3 ml-1" />
+                          </button>
+                          {editingStatusId === application.id && (
+                            <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                              {(['pending', 'reviewed', 'accepted', 'rejected'] as const).map(status => (
+                                <button
+                                  key={status}
+                                  onClick={() => handleStatusUpdate(application.id, status)}
+                                  disabled={updatingStatus === application.id}
+                                  className={`w-full px-3 py-2 text-left text-sm capitalize hover:bg-gray-50 flex items-center gap-2 ${application.status === status ? 'bg-gray-100 font-medium' : ''}`}
+                                >
+                                  {getStatusIcon(status)}
+                                  {status}
+                                  {updatingStatus === application.id && application.status !== status && (
+                                    <Loader2 className="h-3 w-3 animate-spin ml-auto" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -334,6 +377,18 @@ export const ManageApplications: React.FC = () => {
                         )}
                         <button className="p-2 text-gray-400 hover:text-yellow-500 transition-colors">
                           <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(application.id)}
+                          disabled={deletingId === application.id}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete application"
+                        >
+                          {deletingId === application.id ? (
+                            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                          )}
                         </button>
                       </div>
                     </div>

@@ -456,3 +456,23 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         """Check if current user has applied to a job"""
         has_applied = Application.objects.filter(job_id=job_id, seeker=request.user).exists()
         return Response({'has_applied': has_applied})
+
+    def destroy(self, request, pk=None):
+        """Delete an application (seeker can withdraw, employer can delete)"""
+        try:
+            application = self.get_object()
+            user = request.user
+            
+            # Seeker can delete their own applications
+            if user.role == 'seeker' and application.seeker == user:
+                application.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
+            # Employer can delete applications for their jobs
+            if user.role == 'employer' and application.job.posted_by == user:
+                application.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
+            return Response({'error': 'You do not have permission to delete this application'}, status=status.HTTP_403_FORBIDDEN)
+        except Application.DoesNotExist:
+            return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)
