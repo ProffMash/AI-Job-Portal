@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code, Loader2, X, Linkedin, Github, Globe, Phone } from 'lucide-react';
 import { fetchSeekers, UserProfile } from '../API/profileApi';
+import { useSavedCandidatesStore } from '../stores/savedCandidatesStore';
 
 interface Candidate {
   id: number;
@@ -213,6 +214,9 @@ export const TalentPool: React.FC = () => {
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
+  // Use saved candidates store
+  const { addCandidate, removeCandidate, isShortlisted } = useSavedCandidatesStore();
+
   // Fetch seekers from API
   useEffect(() => {
     const loadSeekers = async () => {
@@ -232,7 +236,7 @@ export const TalentPool: React.FC = () => {
           experience: seeker.experience || 'Not specified',
           education: seeker.education || 'Not specified',
           matchScore: Math.floor(Math.random() * 30) + 70, // Random score for now (70-100)
-          isShortlisted: false,
+          isShortlisted: isShortlisted(seeker.id),
           email: seeker.email,
           bio: seeker.bio,
           linkedin: seeker.linkedin,
@@ -250,7 +254,7 @@ export const TalentPool: React.FC = () => {
     };
     
     loadSeekers();
-  }, []);
+  }, [isShortlisted]);
 
   const allSkills = Array.from(new Set(candidates.flatMap(c => c.skills)));
 
@@ -264,6 +268,34 @@ export const TalentPool: React.FC = () => {
   });
 
   const toggleShortlist = (id: number) => {
+    const candidate = candidates.find(c => c.id === id);
+    if (!candidate) return;
+
+    if (candidate.isShortlisted) {
+      // Remove from saved candidates
+      removeCandidate(id);
+    } else {
+      // Add to saved candidates
+      addCandidate({
+        id: candidate.id,
+        name: candidate.name,
+        title: candidate.title,
+        location: candidate.location,
+        avatar: candidate.avatar,
+        skills: candidate.skills,
+        experience: candidate.experience,
+        education: candidate.education,
+        matchScore: candidate.matchScore,
+        email: candidate.email,
+        bio: candidate.bio,
+        linkedin: candidate.linkedin,
+        github: candidate.github,
+        portfolio: candidate.portfolio,
+        phone: candidate.phone,
+      });
+    }
+
+    // Update local state
     setCandidates(prev =>
       prev.map(c => c.id === id ? { ...c, isShortlisted: !c.isShortlisted } : c)
     );

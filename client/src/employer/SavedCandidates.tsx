@@ -1,84 +1,204 @@
 import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
-import { Star, StarOff, MapPin, Briefcase, Mail, ExternalLink, Search, Filter, Trash2, GraduationCap, Code, Clock } from 'lucide-react';
+import { Star, StarOff, MapPin, Briefcase, Mail, ExternalLink, Search, Filter, Trash2, GraduationCap, Code, Clock, X, Linkedin, Github, Globe, Phone } from 'lucide-react';
+import { useSavedCandidatesStore, SavedCandidate } from '../stores/savedCandidatesStore';
 
-interface SavedCandidate {
-  id: string;
-  name: string;
-  title: string;
-  location: string;
-  avatar: string;
-  skills: string[];
-  experience: string;
-  education: string;
-  matchScore: number;
-  savedAt: Date;
-  appliedFor?: string;
-  notes?: string;
-}
+// Profile Modal Component
+const ProfileModal: React.FC<{
+  candidate: SavedCandidate | null;
+  onClose: () => void;
+  onRemove: (id: number) => void;
+}> = ({ candidate, onClose, onRemove }) => {
+  if (!candidate) return null;
 
-// Mock saved candidates data
-const mockSavedCandidates: SavedCandidate[] = [
-  {
-    id: '1',
-    name: 'Alex Thompson',
-    title: 'Senior Full Stack Developer',
-    location: 'San Francisco, CA',
-    avatar: 'https://ui-avatars.com/api/?name=Alex+Thompson&background=6366f1&color=fff',
-    skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS'],
-    experience: '7 years',
-    education: 'MS Computer Science, Stanford',
-    matchScore: 95,
-    savedAt: new Date('2026-01-18'),
-    appliedFor: 'Senior React Developer',
-    notes: 'Strong technical background, excellent communication skills'
-  },
-  {
-    id: '2',
-    name: 'Maria Garcia',
-    title: 'Frontend Developer',
-    location: 'Austin, TX',
-    avatar: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=10b981&color=fff',
-    skills: ['React', 'Vue.js', 'CSS', 'JavaScript', 'Figma'],
-    experience: '5 years',
-    education: 'BS Computer Science, UT Austin',
-    matchScore: 88,
-    savedAt: new Date('2026-01-17'),
-    appliedFor: 'UI Developer'
-  },
-  {
-    id: '3',
-    name: 'Sarah Chen',
-    title: 'DevOps Engineer',
-    location: 'Remote',
-    avatar: 'https://ui-avatars.com/api/?name=Sarah+Chen&background=ef4444&color=fff',
-    skills: ['Kubernetes', 'AWS', 'Terraform', 'CI/CD', 'Linux'],
-    experience: '4 years',
-    education: 'BS Computer Engineering, MIT',
-    matchScore: 79,
-    savedAt: new Date('2026-01-15'),
-    notes: 'Great portfolio, considering for Cloud Engineer role'
-  },
-  {
-    id: '4',
-    name: 'David Kim',
-    title: 'Mobile Developer',
-    location: 'Los Angeles, CA',
-    avatar: 'https://ui-avatars.com/api/?name=David+Kim&background=8b5cf6&color=fff',
-    skills: ['React Native', 'Swift', 'Kotlin', 'Firebase', 'GraphQL'],
-    experience: '5 years',
-    education: 'BS Computer Science, UCLA',
-    matchScore: 75,
-    savedAt: new Date('2026-01-12')
-  }
-];
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          {/* Header with gradient background */}
+          <div className="relative bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-8">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
+            
+            <div className="flex items-center space-x-4">
+              <img
+                src={candidate.avatar}
+                alt={candidate.name}
+                className="h-20 w-20 rounded-full border-4 border-white shadow-lg"
+              />
+              <div className="text-white">
+                <h2 className="text-2xl font-bold">{candidate.name}</h2>
+                <p className="text-yellow-100">{candidate.title}</p>
+                <div className="flex items-center mt-1 text-yellow-100">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {candidate.location}
+                </div>
+              </div>
+            </div>
+            
+            {/* Match Score Badge */}
+            <div className="absolute top-4 left-6 bg-white rounded-full px-3 py-1 shadow-lg flex items-center">
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 mr-1" />
+              <span className="text-sm font-medium text-gray-700">Shortlisted</span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6 overflow-y-auto max-h-[50vh]">
+            {/* Bio */}
+            {candidate.bio && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h3>
+                <p className="text-gray-700 leading-relaxed">{candidate.bio}</p>
+              </div>
+            )}
+
+            {/* Skills */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {candidate.skills.length > 0 ? (
+                  candidate.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 rounded-full text-sm font-medium border border-yellow-100"
+                    >
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm">No skills listed</span>
+                )}
+              </div>
+            </div>
+
+            {/* Experience & Education */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center mb-2">
+                  <Briefcase className="h-5 w-5 text-yellow-600 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700">Experience</h3>
+                </div>
+                <p className="text-gray-600">{candidate.experience}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center mb-2">
+                  <GraduationCap className="h-5 w-5 text-yellow-600 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700">Education</h3>
+                </div>
+                <p className="text-gray-600">{candidate.education}</p>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {candidate.notes && (
+              <div className="mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+                <h3 className="text-sm font-semibold text-yellow-700 mb-2">Your Notes</h3>
+                <p className="text-yellow-800">{candidate.notes}</p>
+              </div>
+            )}
+
+            {/* Contact & Links */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact & Links</h3>
+              <div className="space-y-2">
+                <a
+                  href={`mailto:${candidate.email}`}
+                  className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                >
+                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                  {candidate.email}
+                </a>
+                {candidate.phone && (
+                  <div className="flex items-center text-gray-600">
+                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                    {candidate.phone}
+                  </div>
+                )}
+                {candidate.linkedin && (
+                  <a
+                    href={candidate.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                  >
+                    <Linkedin className="h-4 w-4 mr-3 text-gray-400" />
+                    LinkedIn Profile
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+                {candidate.github && (
+                  <a
+                    href={candidate.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                  >
+                    <Github className="h-4 w-4 mr-3 text-gray-400" />
+                    GitHub Profile
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+                {candidate.portfolio && (
+                  <a
+                    href={candidate.portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                  >
+                    <Globe className="h-4 w-4 mr-3 text-gray-400" />
+                    Portfolio Website
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+            <button
+              onClick={() => {
+                onRemove(candidate.id);
+                onClose();
+              }}
+              className="flex items-center px-4 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="h-5 w-5 mr-2" />
+              Remove from Shortlist
+            </button>
+            <a
+              href={`mailto:${candidate.email}`}
+              className="flex items-center px-6 py-2 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-colors"
+            >
+              <Mail className="h-5 w-5 mr-2" />
+              Send Message
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const SavedCandidates: React.FC = () => {
-  const [savedCandidates, setSavedCandidates] = useState<SavedCandidate[]>(mockSavedCandidates);
+  const { savedCandidates, removeCandidate } = useSavedCandidatesStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [skillFilter, setSkillFilter] = useState<string>('all');
+  const [selectedCandidate, setSelectedCandidate] = useState<SavedCandidate | null>(null);
 
-  const allSkills = Array.from(new Set(mockSavedCandidates.flatMap(c => c.skills)));
+  const allSkills = Array.from(new Set(savedCandidates.flatMap(c => c.skills)));
 
   const filteredCandidates = savedCandidates.filter(candidate => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,13 +208,10 @@ export const SavedCandidates: React.FC = () => {
     return matchesSearch && matchesSkill;
   });
 
-  const removeCandidate = (id: string) => {
-    setSavedCandidates(prev => prev.filter(c => c.id !== id));
-  };
-
-  const getDaysAgo = (date: Date) => {
+  const getDaysAgo = (dateString: string) => {
     const now = new Date();
-    const diff = Math.floor((now.getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24));
+    const date = new Date(dateString);
+    const diff = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
     return `${diff} days ago`;
@@ -127,7 +244,7 @@ export const SavedCandidates: React.FC = () => {
                 placeholder="Search saved candidates..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -135,7 +252,7 @@ export const SavedCandidates: React.FC = () => {
               <select
                 value={skillFilter}
                 onChange={(e) => setSkillFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
               >
                 <option value="all">All Skills</option>
                 {allSkills.map(skill => (
@@ -155,7 +272,7 @@ export const SavedCandidates: React.FC = () => {
               <p className="text-gray-600">
                 {searchTerm || skillFilter !== 'all'
                   ? 'No candidates match your search criteria.'
-                  : 'Save candidates you\'re interested in to view them later.'}
+                  : 'Save candidates from the Talent Pool to view them here.'}
               </p>
             </div>
           ) : (
@@ -167,12 +284,16 @@ export const SavedCandidates: React.FC = () => {
                       <img
                         src={candidate.avatar}
                         alt={candidate.name}
-                        className="h-12 w-12 sm:h-16 sm:w-16 rounded-full flex-shrink-0"
+                        className="h-12 w-12 sm:h-16 sm:w-16 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-yellow-400 transition-all"
+                        onClick={() => setSelectedCandidate(candidate)}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate">
+                            <h3 
+                              onClick={() => setSelectedCandidate(candidate)}
+                              className="text-base sm:text-lg font-semibold text-gray-900 hover:text-yellow-600 cursor-pointer truncate"
+                            >
                               {candidate.name}
                             </h3>
                             <p className="text-sm sm:text-base text-gray-600 truncate">{candidate.title}</p>
@@ -196,7 +317,7 @@ export const SavedCandidates: React.FC = () => {
                             <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 mt-0.5 text-gray-400 flex-shrink-0" />
                             <div className="flex flex-wrap gap-1">
                               {candidate.skills.slice(0, 4).map((skill, index) => (
-                                <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                                <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-yellow-50 text-yellow-700 rounded text-xs">
                                   {skill}
                                 </span>
                               ))}
@@ -209,11 +330,42 @@ export const SavedCandidates: React.FC = () => {
                           </div>
                         </div>
 
-                        {candidate.appliedFor && (
-                          <div className="mt-3">
-                            <span className="text-sm text-blue-600">
-                              Applied for: {candidate.appliedFor}
-                            </span>
+                        {/* Social Links */}
+                        {(candidate.linkedin || candidate.github || candidate.portfolio) && (
+                          <div className="mt-3 flex items-center space-x-3">
+                            {candidate.linkedin && (
+                              <a
+                                href={candidate.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                title="LinkedIn"
+                              >
+                                <Linkedin className="h-4 w-4" />
+                              </a>
+                            )}
+                            {candidate.github && (
+                              <a
+                                href={candidate.github}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                                title="GitHub"
+                              >
+                                <Github className="h-4 w-4" />
+                              </a>
+                            )}
+                            {candidate.portfolio && (
+                              <a
+                                href={candidate.portfolio}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                title="Portfolio"
+                              >
+                                <Globe className="h-4 w-4" />
+                              </a>
+                            )}
                           </div>
                         )}
 
@@ -230,7 +382,7 @@ export const SavedCandidates: React.FC = () => {
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:space-y-3">
                       <div className="flex items-center gap-2 sm:flex-col sm:items-end">
                         <div className="text-right">
-                          <span className="text-xl sm:text-2xl font-bold text-blue-600">{candidate.matchScore}%</span>
+                          <span className="text-xl sm:text-2xl font-bold text-yellow-600">{candidate.matchScore}%</span>
                           <p className="text-xs text-gray-500">Match</p>
                         </div>
                         <div className="flex items-center text-xs text-gray-400">
@@ -250,11 +402,17 @@ export const SavedCandidates: React.FC = () => {
 
                   <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2 sm:space-x-3">
-                      <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                      <a 
+                        href={`mailto:${candidate.email}`}
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-yellow-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
+                      >
                         <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         Contact
-                      </button>
-                      <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                      </a>
+                      <button 
+                        onClick={() => setSelectedCandidate(candidate)}
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                      >
                         <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         View Profile
                       </button>
@@ -269,6 +427,15 @@ export const SavedCandidates: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {selectedCandidate && (
+        <ProfileModal
+          candidate={selectedCandidate}
+          onClose={() => setSelectedCandidate(null)}
+          onRemove={removeCandidate}
+        />
+      )}
     </Layout>
   );
 };
