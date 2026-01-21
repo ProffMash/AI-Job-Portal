@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Star, StarOff, MapPin, Briefcase, Mail, ExternalLink, Search, Filter, Trash2, GraduationCap, Code, Clock, X, Linkedin, Github, Globe, Phone } from 'lucide-react';
+import { Star, StarOff, MapPin, Briefcase, Mail, ExternalLink, Search, Filter, Trash2, GraduationCap, Code, Clock, X, Linkedin, Github, Globe, Phone, Loader2 } from 'lucide-react';
 import { useSavedCandidatesStore, SavedCandidate } from '../stores/savedCandidatesStore';
 
 // Profile Modal Component
 const ProfileModal: React.FC<{
   candidate: SavedCandidate | null;
   onClose: () => void;
-  onRemove: (id: number) => void;
+  onRemove: (id: number) => Promise<void>;
 }> = ({ candidate, onClose, onRemove }) => {
   if (!candidate) return null;
+
+  const handleRemoveClick = async () => {
+    await onRemove(candidate.id);
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -169,10 +174,7 @@ const ProfileModal: React.FC<{
           {/* Footer Actions */}
           <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
             <button
-              onClick={() => {
-                onRemove(candidate.id);
-                onClose();
-              }}
+              onClick={handleRemoveClick}
               className="flex items-center px-4 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
               <Trash2 className="h-5 w-5 mr-2" />
@@ -193,10 +195,23 @@ const ProfileModal: React.FC<{
 };
 
 export const SavedCandidates: React.FC = () => {
-  const { savedCandidates, removeCandidate } = useSavedCandidatesStore();
+  const { savedCandidates, removeCandidate, fetchCandidates, isLoading, error } = useSavedCandidatesStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [selectedCandidate, setSelectedCandidate] = useState<SavedCandidate | null>(null);
+
+  // Fetch saved candidates on mount
+  useEffect(() => {
+    fetchCandidates();
+  }, [fetchCandidates]);
+
+  const handleRemove = async (id: number) => {
+    try {
+      await removeCandidate(id);
+    } catch (err) {
+      console.error('Failed to remove candidate:', err);
+    }
+  };
 
   const allSkills = Array.from(new Set(savedCandidates.flatMap(c => c.skills)));
 
@@ -216,6 +231,37 @@ export const SavedCandidates: React.FC = () => {
     if (diff === 1) return 'Yesterday';
     return `${diff} days ago`;
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
+            <span className="ml-2 text-gray-600">Loading saved candidates...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => fetchCandidates()}
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -391,7 +437,7 @@ export const SavedCandidates: React.FC = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => removeCandidate(candidate.id)}
+                        onClick={() => handleRemove(candidate.id)}
                         className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                         title="Remove from saved"
                       >
@@ -433,7 +479,7 @@ export const SavedCandidates: React.FC = () => {
         <ProfileModal
           candidate={selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
-          onRemove={removeCandidate}
+          onRemove={handleRemove}
         />
       )}
     </Layout>

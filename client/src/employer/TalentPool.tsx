@@ -215,7 +215,12 @@ export const TalentPool: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   // Use saved candidates store
-  const { addCandidate, removeCandidate, isShortlisted } = useSavedCandidatesStore();
+  const { addCandidate, removeCandidate, isShortlisted, fetchCandidates: fetchSavedCandidates, savedCandidates } = useSavedCandidatesStore();
+
+  // Fetch saved candidates on mount
+  useEffect(() => {
+    fetchSavedCandidates();
+  }, [fetchSavedCandidates]);
 
   // Fetch seekers from API
   useEffect(() => {
@@ -254,7 +259,7 @@ export const TalentPool: React.FC = () => {
     };
     
     loadSeekers();
-  }, [isShortlisted]);
+  }, [savedCandidates]);
 
   const allSkills = Array.from(new Set(candidates.flatMap(c => c.skills)));
 
@@ -267,38 +272,42 @@ export const TalentPool: React.FC = () => {
     return matchesSearch && matchesSkill && matchesShortlist;
   });
 
-  const toggleShortlist = (id: number) => {
+  const toggleShortlist = async (id: number) => {
     const candidate = candidates.find(c => c.id === id);
     if (!candidate) return;
 
-    if (candidate.isShortlisted) {
-      // Remove from saved candidates
-      removeCandidate(id);
-    } else {
-      // Add to saved candidates
-      addCandidate({
-        id: candidate.id,
-        name: candidate.name,
-        title: candidate.title,
-        location: candidate.location,
-        avatar: candidate.avatar,
-        skills: candidate.skills,
-        experience: candidate.experience,
-        education: candidate.education,
-        matchScore: candidate.matchScore,
-        email: candidate.email,
-        bio: candidate.bio,
-        linkedin: candidate.linkedin,
-        github: candidate.github,
-        portfolio: candidate.portfolio,
-        phone: candidate.phone,
-      });
-    }
+    try {
+      if (candidate.isShortlisted) {
+        // Remove from saved candidates
+        await removeCandidate(id);
+      } else {
+        // Add to saved candidates
+        await addCandidate({
+          id: candidate.id,
+          name: candidate.name,
+          title: candidate.title,
+          location: candidate.location,
+          avatar: candidate.avatar,
+          skills: candidate.skills,
+          experience: candidate.experience,
+          education: candidate.education,
+          matchScore: candidate.matchScore,
+          email: candidate.email,
+          bio: candidate.bio,
+          linkedin: candidate.linkedin,
+          github: candidate.github,
+          portfolio: candidate.portfolio,
+          phone: candidate.phone,
+        });
+      }
 
-    // Update local state
-    setCandidates(prev =>
-      prev.map(c => c.id === id ? { ...c, isShortlisted: !c.isShortlisted } : c)
-    );
+      // Update local state
+      setCandidates(prev =>
+        prev.map(c => c.id === id ? { ...c, isShortlisted: !c.isShortlisted } : c)
+      );
+    } catch (err) {
+      console.error('Failed to toggle shortlist:', err);
+    }
   };
 
 
