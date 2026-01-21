@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3 } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3, X, MapPin, Phone, Link, Linkedin, Github, GraduationCap, User } from 'lucide-react';
 import { getAllApplications, updateApplicationStatus, deleteApplication, ApplicationResponse } from '../API/applicationApi';
 import { fetchMyJobs, Job } from '../API/jobApi';
 
@@ -14,6 +14,7 @@ export const ManageApplications: React.FC = () => {
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+  const [viewingProfile, setViewingProfile] = useState<ApplicationResponse | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus>('all');
   const [jobFilter, setJobFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
@@ -334,7 +335,10 @@ export const ManageApplications: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 sm:space-x-3">
-                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+                        <button 
+                          onClick={() => setViewingProfile(application)}
+                          className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                        >
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           View Profile
                         </button>
@@ -399,6 +403,196 @@ export const ManageApplications: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {viewingProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">Candidate Profile</h2>
+              <button
+                onClick={() => setViewingProfile(null)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Profile Content */}
+            <div className="p-6">
+              {/* Profile Header */}
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+                  {viewingProfile.seeker_details.avatar ? (
+                    <img 
+                      src={viewingProfile.seeker_details.avatar} 
+                      alt={viewingProfile.seeker_name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    viewingProfile.seeker_name.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900">{viewingProfile.seeker_name}</h3>
+                  <p className="text-gray-600">{viewingProfile.seeker_email}</p>
+                  {viewingProfile.seeker_details.location && (
+                    <p className="text-gray-500 flex items-center mt-1">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      {viewingProfile.seeker_details.location}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <User className="h-4 w-4 mr-2" />
+                  Contact Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center text-sm">
+                    <Mail className="h-4 w-4 text-gray-400 mr-2" />
+                    <a href={`mailto:${viewingProfile.seeker_email}`} className="text-blue-600 hover:underline">
+                      {viewingProfile.seeker_email}
+                    </a>
+                  </div>
+                  {viewingProfile.seeker_details.phone && (
+                    <div className="flex items-center text-sm">
+                      <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                      <a href={`tel:${viewingProfile.seeker_details.phone}`} className="text-blue-600 hover:underline">
+                        {viewingProfile.seeker_details.phone}
+                      </a>
+                    </div>
+                  )}
+                  {viewingProfile.seeker_details.linkedin && (
+                    <div className="flex items-center text-sm">
+                      <Linkedin className="h-4 w-4 text-gray-400 mr-2" />
+                      <a href={viewingProfile.seeker_details.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                        LinkedIn Profile
+                      </a>
+                    </div>
+                  )}
+                  {viewingProfile.seeker_details.github && (
+                    <div className="flex items-center text-sm">
+                      <Github className="h-4 w-4 text-gray-400 mr-2" />
+                      <a href={viewingProfile.seeker_details.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                        GitHub Profile
+                      </a>
+                    </div>
+                  )}
+                  {viewingProfile.seeker_details.portfolio && (
+                    <div className="flex items-center text-sm">
+                      <Link className="h-4 w-4 text-gray-400 mr-2" />
+                      <a href={viewingProfile.seeker_details.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                        Portfolio
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Bio */}
+              {viewingProfile.seeker_details.bio && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">About</h4>
+                  <p className="text-gray-700 text-sm leading-relaxed">{viewingProfile.seeker_details.bio}</p>
+                </div>
+              )}
+
+              {/* Skills */}
+              {viewingProfile.seeker_details.skills && viewingProfile.seeker_details.skills.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingProfile.seeker_details.skills.map((skill, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Experience */}
+              {viewingProfile.seeker_details.experience && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Experience
+                  </h4>
+                  <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                    {viewingProfile.seeker_details.experience}
+                  </p>
+                </div>
+              )}
+
+              {/* Education */}
+              {viewingProfile.seeker_details.education && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                    Education
+                  </h4>
+                  <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                    {viewingProfile.seeker_details.education}
+                  </p>
+                </div>
+              )}
+
+              {/* Cover Letter for this application */}
+              {viewingProfile.cover_letter && (
+                <div className="mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-2">Cover Letter for {viewingProfile.job_details.title}</h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                      {viewingProfile.cover_letter}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Application Info */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-2">Application Details</h4>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p><span className="font-medium">Applied for:</span> {viewingProfile.job_details.title}</p>
+                  <p><span className="font-medium">Applied on:</span> {new Date(viewingProfile.applied_at).toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}</p>
+                  <p className="flex items-center">
+                    <span className="font-medium mr-2">Status:</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${getStatusColor(viewingProfile.status)}`}>
+                      {viewingProfile.status}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+              <button
+                onClick={() => setViewingProfile(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Close
+              </button>
+              <a
+                href={`mailto:${viewingProfile.seeker_email}`}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Contact Candidate
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };
