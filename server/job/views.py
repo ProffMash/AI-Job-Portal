@@ -386,3 +386,73 @@ class SavedCandidateViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except SavedCandidate.DoesNotExist:
             return Response({'error': 'Saved candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+from .models import Application
+from .serializers import ApplicationSerializer, ApplicationStatusSerializer
+
+
+class ApplicationViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing job applications"""
+    serializer_class = ApplicationSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'seeker':
+            # Seekers can only see their own applications
+            return Application.objects.filter(seeker=user)
+        elif user.role == 'employer':
+            # Employers can see applications for their jobs
+            return Application.objects.filter(job__posted_by=user)
+        return Application.objects.none()
+
+    def get_serializer_class(self):
+        if self.action == 'update_status':
+            return ApplicationStatusSerializer
+        return ApplicationSerializer
+
+    @action(detail=False, methods=['get'], url_path='my-applications')
+    def my_applications(self, request):
+        """Get all applications for the current seeker"""
+        if request.user.role != 'seeker':
+            return Response({'error': 'Only seekers can view their applications'}, status=status.HTTP_403_FORBIDDEN)
+        applications = Application.objects.filter(seeker=request.user)
+        serializer = self.get_serializer(applications, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='for-job/(?P<job_id>[^/.]+)')
+    def for_job(self, request, job_id=None):
+        """Get all applications for a specific job (employer only)"""
+        try:
+            job = Job.objects.get(id=job_id)
+            if job.posted_by != request.user:
+                return Response({'error': 'You can only view applications for your own jobs'}, status=status.HTTP_403_FORBIDDEN)
+            applications = Application.objects.filter(job=job)
+            serializer = self.get_serializer(applications, many=True)
+            return Response(serializer.data)
+        except Job.DoesNotExist:
+            return Response({'error': 'Job not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=True, methods=['patch'], url_path='status')
+    def update_status(self, request, pk=None):
+        """Update application status (employer only)"""
+        try:
+            application = self.get_object()
+            if application.job.posted_by != request.user:
+                return Response({'error': 'You can only update applications for your own jobs'}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = ApplicationStatusSerializer(application, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(ApplicationSerializer(application).data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Application.DoesNotExist:
+            return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path='check/(?P<job_id>[^/.]+)')
+    def check_applied(self, request, job_id=None):
+        """Check if current user has applied to a job"""
+        has_applied = Application.objects.filter(job_id=job_id, seeker=request.user).exists()
+        return Response({'has_applied': has_applied})

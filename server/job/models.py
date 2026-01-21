@@ -119,3 +119,26 @@ class SavedCandidate(models.Model):
 
     def __str__(self):
         return f"{self.employer.email} saved {self.candidate.email}"
+
+
+class Application(models.Model):
+    """Model to store job applications from seekers"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('reviewed', 'Reviewed'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    seeker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    applied_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-applied_at']
+        unique_together = ['job', 'seeker']  # Prevent duplicate applications
+
+    def __str__(self):
+        return f"{self.seeker.email} applied to {self.job.title}"

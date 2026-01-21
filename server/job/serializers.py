@@ -192,3 +192,65 @@ class SavedCandidateSerializer(serializers.ModelSerializer):
         
         return data
 
+
+from .models import Application
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    """Serializer for job applications"""
+    job_id = serializers.IntegerField(write_only=True)
+    job_details = JobSerializer(source='job', read_only=True)
+    seeker_id = serializers.IntegerField(source='seeker.id', read_only=True)
+    seeker_name = serializers.CharField(source='seeker.name', read_only=True)
+    seeker_email = serializers.EmailField(source='seeker.email', read_only=True)
+    seeker_details = UserSerializer(source='seeker', read_only=True)
+
+    class Meta:
+        model = Application
+        fields = [
+            'id', 'job_id', 'job_details', 'seeker_id', 'seeker_name', 'seeker_email',
+            'seeker_details', 'status', 'applied_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'seeker_id', 'seeker_name', 'seeker_email', 'seeker_details', 'applied_at', 'updated_at']
+
+    def create(self, validated_data):
+        job_id = validated_data.pop('job_id')
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            raise serializers.ValidationError({'job_id': 'Job not found'})
+        
+        validated_data['job'] = job
+        validated_data['seeker'] = self.context['request'].user
+        
+        # Increment applicant count on the job
+        job.applicant_count += 1
+        job.save()
+        
+        return super().create(validated_data)
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if user.role != 'seeker':
+            raise serializers.ValidationError('Only job seekers can apply to jobs')
+        
+        # Check for duplicate application on create
+        if self.instance is None:
+            job_id = data.get('job_id')
+            if Application.objects.filter(job_id=job_id, seeker=user).exists():
+                raise serializers.ValidationError('You have already applied to this job')
+        
+        return data
+
+
+class ApplicationStatusSerializer(serializers.ModelSerializer):
+    """Serializer for updating application status (employers only)"""
+    class Meta:
+        model = Application
+        fields = ['status']
+
+    def validate_status(self, value):
+        if value not in ['pending', 'reviewed', 'accepted', 'rejected']:
+            raise serializers.ValidationError('Invalid status')
+        return value
+
