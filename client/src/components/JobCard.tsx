@@ -1,26 +1,37 @@
 import React from 'react';
-import { Job } from '../types';
-import { MapPin, Clock, DollarSign, Users } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Users, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
-import { useJobsStore } from '../stores/jobsStore';
 
-interface JobCardProps {
-  job: Job;
-  onApply?: (jobId: string) => void;
-  showApplicants?: boolean;
+interface JobCardJob {
+  id: number | string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  requirements: string[];
+  salary?: string | null;
+  type: 'full-time' | 'part-time' | 'contract' | 'remote' | string;
+  posted_at?: string;
+  postedAt?: Date;
+  applicant_count?: number;
+  applicantCount?: number;
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants = false }) => {
-  const { user } = useAuthStore();
-  const { applications } = useJobsStore();
-  
-  const hasApplied = applications.some(
-    app => app.jobId === job.id && app.seekerId === user?.id
-  );
+interface JobCardProps {
+  job: JobCardJob;
+  onApply?: (jobId: string | number) => void;
+  showApplicants?: boolean;
+  isApplied?: boolean;
+  isApplying?: boolean;
+}
 
-  const formatDate = (date: Date) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants = false, isApplied = false, isApplying = false }) => {
+  const { user } = useAuthStore();
+
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffTime = Math.abs(now.getTime() - dateObj.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 1) return '1 day ago';
@@ -28,6 +39,9 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
     return `${Math.ceil(diffDays / 30)} months ago`;
   };
+
+  const postedDate = job.posted_at || job.postedAt;
+  const applicantCount = job.applicant_count ?? job.applicantCount ?? 0;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -40,10 +54,12 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
               <MapPin className="h-4 w-4 mr-1" />
               {job.location}
             </div>
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              {formatDate(job.postedAt)}
-            </div>
+            {postedDate && (
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                {formatDate(postedDate)}
+              </div>
+            )}
             {job.salary && (
               <div className="flex items-center">
                 <DollarSign className="h-4 w-4 mr-1" />
@@ -64,7 +80,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
           {showApplicants && (
             <div className="flex items-center text-gray-500 text-sm">
               <Users className="h-4 w-4 mr-1" />
-              {job.applicantCount} applicants
+              {applicantCount} applicants
             </div>
           )}
         </div>
@@ -75,7 +91,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
       <div className="mb-4">
         <h4 className="text-sm font-medium text-gray-900 mb-2">Requirements:</h4>
         <div className="flex flex-wrap gap-2">
-          {job.requirements.map((req, index) => (
+          {job.requirements?.map((req, index) => (
             <span
               key={index}
               className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
@@ -90,14 +106,25 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
         <div className="flex justify-end">
           <button
             onClick={() => onApply(job.id)}
-            disabled={hasApplied}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              hasApplied
+            disabled={isApplied || isApplying}
+            className={`px-6 py-2 rounded-md font-medium transition-colors flex items-center ${
+              isApplied
                 ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                : isApplying
+                ? 'bg-blue-400 text-white cursor-wait'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
-            {hasApplied ? 'Applied' : 'Apply Now'}
+            {isApplying ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Applying...
+              </>
+            ) : isApplied ? (
+              'Applied'
+            ) : (
+              'Apply Now'
+            )}
           </button>
         </div>
       )}

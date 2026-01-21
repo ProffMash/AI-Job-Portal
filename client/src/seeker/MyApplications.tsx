@@ -1,24 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { useAuthStore } from '../stores/authStore';
-import { useJobsStore } from '../stores/jobsStore';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, MapPin, Building, Calendar, Filter } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, MapPin, Building, Calendar, Filter, Loader2, AlertCircle, Trash2 } from 'lucide-react';
+import { getMyApplications, withdrawApplication, ApplicationResponse } from '../API/applicationApi';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 export const MyApplications: React.FC = () => {
-  const { user } = useAuthStore();
-  const { applications, jobs } = useJobsStore();
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus>('all');
   const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
+  const [withdrawingId, setWithdrawingId] = useState<number | null>(null);
 
-  const userApplications = applications.filter(app => app.seekerId === user?.id);
+  // Fetch applications on mount
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getMyApplications();
+        setApplications(data);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load applications');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApplications();
+  }, []);
 
-  const filteredApplications = userApplications
+  const handleWithdraw = async (applicationId: number) => {
+    if (!confirm('Are you sure you want to withdraw this application?')) return;
+    
+    try {
+      setWithdrawingId(applicationId);
+      await withdrawApplication(applicationId);
+      setApplications(prev => prev.filter(app => app.id !== applicationId));
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to withdraw application');
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
+
+  const filteredApplications = applications
     .filter(app => statusFilter === 'all' || app.status === statusFilter)
     .sort((a, b) => {
       if (sortBy === 'date') {
-        return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+        return new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime();
       }
       return a.status.localeCompare(b.status);
     });
@@ -54,12 +84,45 @@ export const MyApplications: React.FC = () => {
   };
 
   const stats = {
-    total: userApplications.length,
-    pending: userApplications.filter(a => a.status === 'pending').length,
-    reviewed: userApplications.filter(a => a.status === 'reviewed').length,
-    accepted: userApplications.filter(a => a.status === 'accepted').length,
-    rejected: userApplications.filter(a => a.status === 'rejected').length
+    total: applications.length,
+    pending: applications.filter(a => a.status === 'pending').length,
+    reviewed: applications.filter(a => a.status === 'reviewed').length,
+    accepted: applications.filter(a => a.status === 'accepted').length,
+    rejected: applications.filter(a => a.status === 'rejected').length
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <span className="ml-2 text-gray-600">Loading your applications...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Applications</h3>
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -171,7 +234,7 @@ export const MyApplications: React.FC = () => {
             </div>
           ) : (
             filteredApplications.map(application => {
-              const job = jobs.find(j => j.id === application.jobId);
+              const job = application.job_details;
               if (!job) return null;
 
               return (
@@ -197,7 +260,7 @@ export const MyApplications: React.FC = () => {
                             </span>
                             <span className="flex items-center">
                               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                              Applied {new Date(application.appliedAt).toLocaleDateString('en-US', { 
+                              Applied {new Date(application.applied_at).toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 day: 'numeric',
                                 year: 'numeric'
@@ -261,9 +324,25 @@ export const MyApplications: React.FC = () => {
                       <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-center">
                         View Job Details
                       </button>
-                      <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center">
-                        Withdraw Application
-                      </button>
+                      {application.status === 'pending' && (
+                        <button 
+                          onClick={() => handleWithdraw(application.id)}
+                          disabled={withdrawingId === application.id}
+                          className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors text-center flex items-center justify-center disabled:opacity-50"
+                        >
+                          {withdrawingId === application.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                              Withdrawing...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Withdraw Application
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

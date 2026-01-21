@@ -38,14 +38,16 @@ export interface Job {
 }
 
 export interface Application {
-  id: string;
-  jobId: string;
-  seekerId: string;
+  id: number;
+  jobId: number;
+  seekerId: number;
   seekerName: string;
   seekerEmail: string;
-  appliedAt: Date;
+  appliedAt: string;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   coverLetter?: string;
+  resumeUrl?: string;
+  updatedAt?: string;
 }
 
 export interface AuthState {

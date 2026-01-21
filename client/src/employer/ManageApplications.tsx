@@ -1,29 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { useAuthStore } from '../stores/authStore';
-import { useJobsStore } from '../stores/jobsStore';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle } from 'lucide-react';
+import { getAllApplications, updateApplicationStatus, ApplicationResponse } from '../API/applicationApi';
+import { fetchMyJobs, Job } from '../API/jobApi';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 export const ManageApplications: React.FC = () => {
-  const { user } = useAuthStore();
-  const { applications, jobs } = useJobsStore();
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [employerJobs, setEmployerJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus>('all');
   const [jobFilter, setJobFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
 
-  const employerJobs = jobs.filter(job => job.postedBy === user?.id);
-  const employerApplications = applications.filter(app => 
-    employerJobs.some(job => job.id === app.jobId)
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [appsData, jobsData] = await Promise.all([
+          getAllApplications(),
+          fetchMyJobs()
+        ]);
+        setApplications(appsData);
+        setEmployerJobs(jobsData);
+      } catch (err) {
+        console.error('Failed to fetch applications:', err);
+        setError('Failed to load applications. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleStatusUpdate = async (applicationId: number, newStatus: 'pending' | 'reviewed' | 'accepted' | 'rejected') => {
+    try {
+      setUpdatingStatus(applicationId);
+      const updated = await updateApplicationStatus(applicationId, newStatus);
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? updated : app
+      ));
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Failed to update application status. Please try again.');
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const employerApplications = applications;
 
   const filteredApplications = employerApplications
     .filter(app => statusFilter === 'all' || app.status === statusFilter)
-    .filter(app => jobFilter === 'all' || app.jobId === jobFilter)
+    .filter(app => jobFilter === 'all' || app.job_details.id.toString() === jobFilter)
     .sort((a, b) => {
       if (sortBy === 'date') {
-        return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+        return new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime();
       }
       return a.status.localeCompare(b.status);
     });
@@ -179,7 +216,18 @@ export const ManageApplications: React.FC = () => {
 
         {/* Applications List */}
         <div className="space-y-4">
-          {filteredApplications.length === 0 ? (
+          {loading ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+              <Loader2 className="mx-auto h-12 w-12 text-blue-500 mb-4 animate-spin" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Loading applications...</h3>
+            </div>
+          ) : error ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+              <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading applications</h3>
+              <p className="text-gray-600">{error}</p>
+            </div>
+          ) : filteredApplications.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
               <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
@@ -191,8 +239,7 @@ export const ManageApplications: React.FC = () => {
             </div>
           ) : (
             filteredApplications.map(application => {
-              const job = jobs.find(j => j.id === application.jobId);
-              if (!job) return null;
+              const job = application.job_details;
 
               return (
                 <div key={application.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -200,15 +247,15 @@ export const ManageApplications: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex items-start space-x-3 sm:space-x-4">
                         <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl flex-shrink-0">
-                          {application.seekerName.charAt(0)}
+                          {application.seeker_name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate">
-                            {application.seekerName}
+                            {application.seeker_name}
                           </h3>
                           <div className="flex items-center text-gray-600 mt-1">
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm truncate">{application.seekerEmail}</span>
+                            <span className="text-xs sm:text-sm truncate">{application.seeker_email}</span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-1 sm:gap-3 mt-2 text-xs sm:text-sm text-gray-500">
                             <span className="flex items-center">
@@ -217,7 +264,7 @@ export const ManageApplications: React.FC = () => {
                             </span>
                             <span className="flex items-center">
                               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                              {new Date(application.appliedAt).toLocaleDateString('en-US', { 
+                              {new Date(application.applied_at).toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 day: 'numeric',
                                 year: 'numeric'
@@ -234,10 +281,10 @@ export const ManageApplications: React.FC = () => {
                       </div>
                     </div>
 
-                    {application.coverLetter && (
+                    {application.cover_letter && (
                       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                         <p className="text-sm text-gray-600 font-medium mb-2">Cover Letter:</p>
-                        <p className="text-sm text-gray-700 line-clamp-3">{application.coverLetter}</p>
+                        <p className="text-sm text-gray-700 line-clamp-3">{application.cover_letter}</p>
                       </div>
                     )}
 
@@ -258,15 +305,32 @@ export const ManageApplications: React.FC = () => {
                         </button>
                       </div>
                       <div className="flex items-center justify-end space-x-2">
-                        {application.status === 'pending' && (
+                        {(application.status === 'pending' || application.status === 'reviewed') && (
                           <>
-                            <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-green-600 border border-green-600 rounded-lg hover:bg-green-50 transition-colors">
-                              Accept
+                            <button
+                              onClick={() => handleStatusUpdate(application.id, 'accepted')}
+                              disabled={updatingStatus === application.id}
+                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-green-600 border border-green-600 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {updatingStatus === application.id ? 'Updating...' : 'Accept'}
                             </button>
-                            <button className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 border border-red-600 rounded-lg hover:bg-red-50 transition-colors">
-                              Reject
+                            <button
+                              onClick={() => handleStatusUpdate(application.id, 'rejected')}
+                              disabled={updatingStatus === application.id}
+                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 border border-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {updatingStatus === application.id ? 'Updating...' : 'Reject'}
                             </button>
                           </>
+                        )}
+                        {application.status === 'pending' && (
+                          <button
+                            onClick={() => handleStatusUpdate(application.id, 'reviewed')}
+                            disabled={updatingStatus === application.id}
+                            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {updatingStatus === application.id ? 'Updating...' : 'Mark Reviewed'}
+                          </button>
                         )}
                         <button className="p-2 text-gray-400 hover:text-yellow-500 transition-colors">
                           <Star className="h-4 w-4 sm:h-5 sm:w-5" />

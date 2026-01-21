@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Bell, MessageCircle, Eye, FileText, Settings, Check, Trash2, TrendingUp, Users } from 'lucide-react';
+import { Bell, MessageCircle, Eye, FileText, Settings, Check, Trash2, TrendingUp, Users, Loader2, AlertCircle } from 'lucide-react';
+import { getAllApplications, ApplicationResponse } from '../API/applicationApi';
 
 interface Notification {
   id: string;
@@ -11,98 +12,84 @@ interface Notification {
   isRead: boolean;
   actionUrl?: string;
   avatar?: string;
+  applicationId?: number;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'application',
-    title: 'New Application',
-    description: 'Alex Thompson applied for Senior React Developer position.',
-    timestamp: new Date('2026-01-19T10:30:00'),
-    isRead: false,
-    avatar: 'https://ui-avatars.com/api/?name=Alex+Thompson&background=6366f1&color=fff'
-  },
-  {
-    id: '2',
-    type: 'application',
-    title: 'New Application',
-    description: 'Maria Garcia applied for UI Developer position.',
-    timestamp: new Date('2026-01-19T09:15:00'),
-    isRead: false,
-    avatar: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=10b981&color=fff'
-  },
-  {
-    id: '3',
-    type: 'message',
-    title: 'New Message',
-    description: 'James Wilson sent you a message regarding his application.',
-    timestamp: new Date('2026-01-19T08:45:00'),
-    isRead: false,
-    avatar: 'https://ui-avatars.com/api/?name=James+Wilson&background=f59e0b&color=fff'
-  },
-  {
-    id: '4',
-    type: 'milestone',
-    title: 'Milestone Reached',
-    description: 'Your job posting "Senior React Developer" reached 50 applications!',
-    timestamp: new Date('2026-01-19T08:00:00'),
-    isRead: true
-  },
-  {
-    id: '5',
-    type: 'view',
-    title: 'Job Views',
-    description: 'Your job postings received 150 views this week.',
-    timestamp: new Date('2026-01-18T18:00:00'),
-    isRead: true
-  },
-  {
-    id: '6',
-    type: 'reminder',
-    title: 'Interview Reminder',
-    description: 'You have an interview scheduled with Sarah Chen tomorrow at 2:00 PM.',
-    timestamp: new Date('2026-01-18T14:30:00'),
-    isRead: true
-  },
-  {
-    id: '7',
-    type: 'application',
-    title: 'Application Withdrawn',
-    description: 'David Kim withdrew his application for Mobile Developer position.',
-    timestamp: new Date('2026-01-18T11:00:00'),
-    isRead: true,
-    avatar: 'https://ui-avatars.com/api/?name=David+Kim&background=8b5cf6&color=fff'
-  },
-  {
-    id: '8',
-    type: 'system',
-    title: 'Job Posting Expiring',
-    description: 'Your "Python Developer" job posting will expire in 3 days. Consider renewing it.',
-    timestamp: new Date('2026-01-17T16:00:00'),
-    isRead: true
-  },
-  {
-    id: '9',
-    type: 'milestone',
-    title: 'Weekly Report',
-    description: 'Your weekly hiring report is ready. You received 28 new applications this week.',
-    timestamp: new Date('2026-01-17T10:00:00'),
-    isRead: true
-  },
-  {
-    id: '10',
-    type: 'view',
-    title: 'Profile Interest',
-    description: '12 candidates viewed your company profile this week.',
-    timestamp: new Date('2026-01-16T09:00:00'),
-    isRead: true
-  }
-];
-
 export const EmployerNotifications: React.FC = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [readNotificationIds, setReadNotificationIds] = useState<Set<string>>(new Set());
+
+  // Fetch applications and generate notifications
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const applicationsData = await getAllApplications();
+        setApplications(applicationsData);
+
+        // Filter for active applications (pending and reviewed)
+        const activeApplications = applicationsData.filter(
+          app => app.status === 'pending' || app.status === 'reviewed'
+        );
+
+        // Generate notifications from active applications
+        const appNotifications: Notification[] = activeApplications.map(app => ({
+          id: `app-${app.id}`,
+          type: 'application' as const,
+          title: app.status === 'pending' ? 'New Application' : 'Application In Review',
+          description: `${app.seeker_name || app.seeker_details?.name || 'A candidate'} applied for ${app.job_details?.title || 'a position'}.`,
+          timestamp: new Date(app.applied_at),
+          isRead: readNotificationIds.has(`app-${app.id}`),
+          avatar: app.seeker_details?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(app.seeker_name || 'User')}&background=6366f1&color=fff`,
+          applicationId: app.id
+        }));
+
+        // Add some system notifications based on stats
+        const systemNotifications: Notification[] = [];
+        
+        if (activeApplications.length >= 10) {
+          systemNotifications.push({
+            id: 'milestone-1',
+            type: 'milestone',
+            title: 'Milestone Reached',
+            description: `You have ${activeApplications.length} active applications to review!`,
+            timestamp: new Date(),
+            isRead: readNotificationIds.has('milestone-1')
+          });
+        }
+
+        const pendingCount = applicationsData.filter(a => a.status === 'pending').length;
+        if (pendingCount > 0) {
+          systemNotifications.push({
+            id: 'reminder-pending',
+            type: 'reminder',
+            title: 'Pending Applications',
+            description: `You have ${pendingCount} pending application${pendingCount > 1 ? 's' : ''} waiting for review.`,
+            timestamp: new Date(),
+            isRead: readNotificationIds.has('reminder-pending')
+          });
+        }
+
+        // Sort all notifications by timestamp (newest first)
+        const allNotifications = [...appNotifications, ...systemNotifications].sort(
+          (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+        );
+
+        setNotifications(allNotifications);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load notifications');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [readNotificationIds]);
 
   const filteredNotifications = notifications.filter(n => 
     filter === 'all' || !n.isRead
@@ -144,12 +131,15 @@ export const EmployerNotifications: React.FC = () => {
   };
 
   const markAsRead = (id: string) => {
+    setReadNotificationIds(prev => new Set([...prev, id]));
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, isRead: true } : n)
     );
   };
 
   const markAllAsRead = () => {
+    const allIds = new Set(notifications.map(n => n.id));
+    setReadNotificationIds(allIds);
     setNotifications(prev =>
       prev.map(n => ({ ...n, isRead: true }))
     );
@@ -158,6 +148,44 @@ export const EmployerNotifications: React.FC = () => {
   const deleteNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
+
+  // Stats from real data - focus on active applications
+  const pendingApplications = applications.filter(a => a.status === 'pending').length;
+  const reviewedApplications = applications.filter(a => a.status === 'reviewed').length;
+  const activeApplications = pendingApplications + reviewedApplications;
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <span className="ml-2 text-gray-600">Loading notifications...</span>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Notifications</h3>
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -192,26 +220,26 @@ export const EmployerNotifications: React.FC = () => {
             <div className="flex items-center">
               <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               <div className="ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">12</p>
-                <p className="text-xs sm:text-sm text-gray-500">New Applications</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{activeApplications}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Active Applications</p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
             <div className="flex items-center">
-              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
+              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />
               <div className="ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">5</p>
-                <p className="text-xs sm:text-sm text-gray-500">Unread Messages</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{pendingApplications}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Pending Review</p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
             <div className="flex items-center">
-              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               <div className="ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">3</p>
-                <p className="text-xs sm:text-sm text-gray-500">Interviews Today</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{reviewedApplications}</p>
+                <p className="text-xs sm:text-sm text-gray-500">Reviewed</p>
               </div>
             </div>
           </div>
