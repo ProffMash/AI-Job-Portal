@@ -56,7 +56,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(required=False, allow_null=True)
+    avatar = serializers.SerializerMethodField()
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -75,10 +75,18 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'email', 'created_at']
 
+    def get_avatar(self, obj):
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return f"http://localhost:8000{obj.avatar.url}"
+        return None
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile with additional validation"""
-    avatar = serializers.ImageField(required=False, allow_null=True)
+    avatar = serializers.SerializerMethodField()
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -95,6 +103,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             'is_active', 'created_at'
         ]
         read_only_fields = ['id', 'email', 'role', 'created_at', 'is_active']
+
+    def get_avatar(self, obj):
+        if obj.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return f"http://localhost:8000{obj.avatar.url}"
+        return None
 
     def validate_skills(self, value):
         """Ensure skills is a list of strings"""
@@ -203,7 +219,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
     seeker_id = serializers.IntegerField(source='seeker.id', read_only=True)
     seeker_name = serializers.CharField(source='seeker.name', read_only=True)
     seeker_email = serializers.EmailField(source='seeker.email', read_only=True)
-    seeker_details = UserSerializer(source='seeker', read_only=True)
+    seeker_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
@@ -212,6 +228,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'seeker_details', 'status', 'applied_at', 'updated_at'
         ]
         read_only_fields = ['id', 'seeker_id', 'seeker_name', 'seeker_email', 'seeker_details', 'applied_at', 'updated_at']
+
+    def get_seeker_details(self, obj):
+        return UserSerializer(obj.seeker, context=self.context).data
 
     def create(self, validated_data):
         job_id = validated_data.pop('job_id')

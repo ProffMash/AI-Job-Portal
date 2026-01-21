@@ -48,13 +48,19 @@ class LoginView(APIView):
             if user is not None:
                 # Ensure user has a token and return it
                 token, _ = Token.objects.get_or_create(user=user)
+                
+                # Build full avatar URL
+                avatar_url = None
+                if user.avatar:
+                    avatar_url = request.build_absolute_uri(user.avatar.url)
+                
                 return Response({
                     'id': user.id,
                     'email': user.email,
                     'username': user.username,
                     'name': user.name,
                     'role': user.role,
-                    'avatar': user.avatar.url if user.avatar else None,
+                    'avatar': avatar_url,
                     'bio': user.bio,
                     'location': user.location,
                     'phone': user.phone,
