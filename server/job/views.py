@@ -340,3 +340,49 @@ class JobViewSet(viewsets.ModelViewSet):
         jobs = Job.objects.all()[:10]
         serializer = self.get_serializer(jobs, many=True)
         return Response(serializer.data)
+
+
+from .models import SavedCandidate
+from .serializers import SavedCandidateSerializer
+
+
+class SavedCandidateViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing saved/shortlisted candidates"""
+    serializer_class = SavedCandidateSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only return saved candidates for the authenticated employer
+        return SavedCandidate.objects.filter(employer=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+    @action(detail=False, methods=['delete'], url_path='by-candidate/(?P<candidate_id>[^/.]+)')
+    def remove_by_candidate(self, request, candidate_id=None):
+        """Remove a candidate from saved list by candidate ID"""
+        try:
+            saved = SavedCandidate.objects.get(employer=request.user, candidate_id=candidate_id)
+            saved.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except SavedCandidate.DoesNotExist:
+            return Response({'error': 'Saved candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path='check/(?P<candidate_id>[^/.]+)')
+    def check_saved(self, request, candidate_id=None):
+        """Check if a candidate is saved"""
+        is_saved = SavedCandidate.objects.filter(employer=request.user, candidate_id=candidate_id).exists()
+        return Response({'is_saved': is_saved})
+
+    @action(detail=False, methods=['patch'], url_path='notes/(?P<candidate_id>[^/.]+)')
+    def update_notes(self, request, candidate_id=None):
+        """Update notes for a saved candidate"""
+        try:
+            saved = SavedCandidate.objects.get(employer=request.user, candidate_id=candidate_id)
+            saved.notes = request.data.get('notes', '')
+            saved.save()
+            serializer = self.get_serializer(saved)
+            return Response(serializer.data)
+        except SavedCandidate.DoesNotExist:
+            return Response({'error': 'Saved candidate not found'}, status=status.HTTP_404_NOT_FOUND)

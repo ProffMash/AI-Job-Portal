@@ -102,3 +102,20 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.title} at {self.company}"
+
+
+class SavedCandidate(models.Model):
+    """Model to store employer's saved/shortlisted candidates"""
+    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_candidates')
+    candidate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_by_employers')
+    match_score = models.PositiveIntegerField(default=0)
+    notes = models.TextField(blank=True, null=True)
+    applied_for = models.CharField(max_length=255, blank=True, null=True)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-saved_at']
+        unique_together = ['employer', 'candidate']  # Prevent duplicate saves
+
+    def __str__(self):
+        return f"{self.employer.email} saved {self.candidate.email}"

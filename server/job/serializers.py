@@ -151,3 +151,44 @@ class JobSerializer(serializers.ModelSerializer):
         validated_data['posted_by'] = self.context['request'].user
         return super().create(validated_data)
 
+
+from .models import SavedCandidate
+
+
+class SavedCandidateSerializer(serializers.ModelSerializer):
+    """Serializer for saved candidates with nested candidate details"""
+    candidate_details = UserSerializer(source='candidate', read_only=True)
+    candidate_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = SavedCandidate
+        fields = [
+            'id', 'candidate_id', 'candidate_details', 'match_score',
+            'notes', 'applied_for', 'saved_at'
+        ]
+        read_only_fields = ['id', 'saved_at', 'candidate_details']
+
+    def create(self, validated_data):
+        candidate_id = validated_data.pop('candidate_id')
+        try:
+            candidate = User.objects.get(id=candidate_id, role='seeker', is_active=True)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'candidate_id': 'Candidate not found'})
+        
+        validated_data['candidate'] = candidate
+        validated_data['employer'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def validate(self, data):
+        employer = self.context['request'].user
+        if employer.role != 'employer':
+            raise serializers.ValidationError('Only employers can save candidates')
+        
+        # Check for duplicate on create
+        if self.instance is None:  # Creating new record
+            candidate_id = data.get('candidate_id')
+            if SavedCandidate.objects.filter(employer=employer, candidate_id=candidate_id).exists():
+                raise serializers.ValidationError('Candidate already saved')
+        
+        return data
+
