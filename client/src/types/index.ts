@@ -1,23 +1,26 @@
 export interface User {
-  id: string;
-  name: string;
+  id: number;
   email: string;
+  username: string;
+  name: string;
   role: 'seeker' | 'employer';
-  skills?: string[];
-  company?: string;
   avatar?: string;
   bio?: string;
   location?: string;
   phone?: string;
   website?: string;
+  skills?: string[];
   experience?: string;
   education?: string;
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  company?: string;
   companySize?: string;
   industry?: string;
   founded?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 export interface Job {

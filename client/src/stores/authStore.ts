@@ -10,6 +10,7 @@ interface ExtendedAuthState extends AuthState {
   setToken: (token: string | null) => void;
   loginWithApi: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   registerWithApi: (data: RegisterData) => Promise<{ success: boolean; user?: User; error?: string }>;
+  initializeAuth: () => void;
 }
 
 export const useAuthStore = create<ExtendedAuthState>()(
@@ -42,25 +43,28 @@ export const useAuthStore = create<ExtendedAuthState>()(
           
           // Map API response to User type
           const user: User = {
-            id: String(response.id),
-            name: response.name,
+            id: response.id,
             email: response.email,
+            username: response.username,
+            name: response.name,
             role: response.role,
-            skills: response.skills,
-            company: response.company,
             avatar: response.avatar,
             bio: response.bio,
             location: response.location,
             phone: response.phone,
             website: response.website,
+            skills: response.skills,
             experience: response.experience,
             education: response.education,
             linkedin: response.linkedin,
             github: response.github,
             portfolio: response.portfolio,
+            company: response.company,
             companySize: response.company_size,
             industry: response.industry,
             founded: response.founded,
+            isActive: response.is_active,
+            createdAt: response.created_at,
           };
           
           set({ user, token: response.token, isAuthenticated: true });
@@ -79,9 +83,10 @@ export const useAuthStore = create<ExtendedAuthState>()(
           
           if (response.user) {
             const user: User = {
-              id: String(response.user.id),
-              name: response.user.name,
+              id: response.user.id,
               email: response.user.email,
+              username: response.user.username || response.user.email.split('@')[0],
+              name: response.user.name,
               role: response.user.role as 'seeker' | 'employer',
             };
             
@@ -112,19 +117,34 @@ export const useAuthStore = create<ExtendedAuthState>()(
       
       logout: () => {
         apiLogout();
+        setAuthToken(null);
         set({ user: null, token: null, isAuthenticated: false });
+      },
+      
+      initializeAuth: () => {
+        const { token } = get();
+        if (token) {
+          setAuthToken(token);
+        }
       }
     }),
     {
       name: 'auth-storage',
-      onRehydrate: () => {
-        return (state) => {
-          // Restore token to axios headers on rehydration
-          if (state?.token) {
-            setAuthToken(state.token);
+      onRehydrate: (state) => {
+        // Called after rehydration - restore token to axios headers
+        return (rehydratedState, error) => {
+          if (!error && rehydratedState?.token) {
+            setAuthToken(rehydratedState.token);
           }
         };
       }
     }
   )
 );
+
+// Initialize auth token from persisted state on module load
+// This ensures the token is set even before React components mount
+const initialState = useAuthStore.getState();
+if (initialState.token) {
+  setAuthToken(initialState.token);
+}

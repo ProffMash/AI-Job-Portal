@@ -2,24 +2,112 @@ import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuthStore } from '../stores/authStore';
 import { User as UserType } from '../types';
-import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building, Loader2, AtSign, Calendar } from 'lucide-react';
+import { updateProfile as apiUpdateProfile, uploadAvatar, UpdateProfileData } from '../API/profileApi';
 
 export const Profile: React.FC = () => {
   const { user, updateProfile } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<UserType | undefined>(user ?? undefined);
   const [newSkill, setNewSkill] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (!user || !editedUser) return null;
 
-  const handleSave = () => {
-    updateProfile(editedUser);
-    setIsEditing(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      // Map frontend field names to backend field names
+      const profileData: UpdateProfileData = {
+        name: editedUser.name,
+        bio: editedUser.bio,
+        location: editedUser.location,
+        phone: editedUser.phone,
+        website: editedUser.website,
+        skills: editedUser.skills,
+        experience: editedUser.experience,
+        education: editedUser.education,
+        linkedin: editedUser.linkedin,
+        github: editedUser.github,
+        portfolio: editedUser.portfolio,
+        company: editedUser.company,
+        company_size: editedUser.companySize,
+        industry: editedUser.industry,
+        founded: editedUser.founded,
+      };
+
+      const updatedProfile = await apiUpdateProfile(user.id, profileData);
+      
+      // Map backend response to frontend User type
+      const updatedUser: Partial<UserType> = {
+        username: updatedProfile.username,
+        name: updatedProfile.name,
+        bio: updatedProfile.bio,
+        location: updatedProfile.location,
+        phone: updatedProfile.phone,
+        website: updatedProfile.website,
+        skills: updatedProfile.skills,
+        experience: updatedProfile.experience,
+        education: updatedProfile.education,
+        linkedin: updatedProfile.linkedin,
+        github: updatedProfile.github,
+        portfolio: updatedProfile.portfolio,
+        company: updatedProfile.company,
+        companySize: updatedProfile.company_size,
+        industry: updatedProfile.industry,
+        founded: updatedProfile.founded,
+        avatar: updatedProfile.avatar,
+        isActive: updatedProfile.is_active,
+        createdAt: updatedProfile.created_at,
+      };
+
+      updateProfile(updatedUser);
+      setSuccessMessage('Profile updated successfully!');
+      setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 
+        err.response?.data?.detail ||
+        Object.values(err.response?.data || {}).flat().join('. ') ||
+        'Failed to update profile. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const updatedProfile = await uploadAvatar(file);
+      updateProfile({ avatar: updatedProfile.avatar });
+      setEditedUser(prev => prev ? ({ ...prev, avatar: updatedProfile.avatar }) : prev);
+      setSuccessMessage('Avatar updated successfully!');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Failed to upload avatar. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setEditedUser(user ?? undefined);
     setIsEditing(false);
+    setError(null);
   };
 
   const handleInputChange = (field: keyof UserType, value: string) => {
@@ -63,32 +151,77 @@ export const Profile: React.FC = () => {
             <div className="flex space-x-2">
               <button
                 onClick={handleCancel}
-                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center"
+                disabled={isSaving}
+                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center disabled:opacity-50"
               >
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
+                disabled={isSaving}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
               >
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </div>
           )}
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-700 hover:text-red-900">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{successMessage}</span>
+            <button onClick={() => setSuccessMessage(null)} className="text-green-700 hover:text-green-900">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Profile Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="text-center">
-                <img
-                  className="h-24 w-24 rounded-full mx-auto mb-4"
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=96`}
-                  alt={user.name}
-                />
+                <div className="relative inline-block">
+                  <img
+                    className="h-24 w-24 rounded-full mx-auto mb-4"
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=96`}
+                    alt={user.name}
+                  />
+                  {isEditing && (
+                    <label className="absolute bottom-3 right-0 bg-blue-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                      <Edit3 className="h-3 w-3" />
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                        disabled={isSaving}
+                      />
+                    </label>
+                  )}
+                </div>
                 {isEditing ? (
                   <input
                     type="text"
@@ -98,6 +231,13 @@ export const Profile: React.FC = () => {
                   />
                 ) : (
                   <h2 className="text-xl font-bold text-gray-900 mb-2">{user.name}</h2>
+                )}
+
+                {user.username && (
+                  <div className="flex items-center justify-center text-gray-500 mb-2">
+                    <AtSign className="h-3 w-3 mr-1" />
+                    <span className="text-sm">{user.username}</span>
+                  </div>
                 )}
                 
                 <div className="flex items-center justify-center text-gray-600 mb-4">
@@ -239,6 +379,16 @@ export const Profile: React.FC = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Member Since */}
+              {user.createdAt && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center text-gray-500 text-sm">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <span>Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                   </div>
                 </div>
               )}

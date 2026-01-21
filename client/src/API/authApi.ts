@@ -1,7 +1,8 @@
 import api from './apiClient';
 import { setAuthToken } from './apiClient';
 
-export interface User {
+// Backend User response type (snake_case)
+export interface UserResponse {
   id: number;
   email: string;
   username: string;
@@ -53,7 +54,7 @@ export interface AuthResponse {
   };
 }
 
-export interface LoginResponse extends User {
+export interface LoginResponse extends UserResponse {
   message: string;
   token: string;
 }
@@ -82,25 +83,25 @@ export function logout(): void {
 }
 
 // Get current user profile
-export async function fetchCurrentUser(): Promise<User> {
-  const response = await api.get<User>('users/me/');
+export async function fetchCurrentUser(): Promise<UserResponse> {
+  const response = await api.get<UserResponse>('users/me/');
   return response.data;
 }
 
 // Update current user profile
-export async function updateProfile(data: Partial<User>): Promise<User> {
-  const response = await api.patch<User>('users/me/', data);
+export async function updateProfile(data: Partial<UserResponse>): Promise<UserResponse> {
+  const response = await api.patch<UserResponse>('users/me/', data);
   return response.data;
 }
 
 // Get all seekers
-export async function fetchSeekers(): Promise<User[]> {
-  const response = await api.get<User[]>('users/seekers/');
+export async function fetchSeekers(): Promise<UserResponse[]> {
+  const response = await api.get<UserResponse[]>('users/seekers/');
   return response.data;
 }
 
 // Get all employers
-export async function fetchEmployers(): Promise<User[]> {
-  const response = await api.get<User[]>('users/employers/');
+export async function fetchEmployers(): Promise<UserResponse[]> {
+  const response = await api.get<UserResponse[]>('users/employers/');
   return response.data;
 }
