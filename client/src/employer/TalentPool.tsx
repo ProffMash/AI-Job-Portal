@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code } from 'lucide-react';
+import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code, Loader2, X, Linkedin, Github, Globe, Phone } from 'lucide-react';
+import { fetchSeekers, UserProfile } from '../API/profileApi';
 
 interface Candidate {
-  id: string;
+  id: number;
   name: string;
   title: string;
   location: string;
@@ -13,98 +14,245 @@ interface Candidate {
   education: string;
   matchScore: number;
   isShortlisted: boolean;
-  availability: 'immediate' | '2weeks' | '1month' | 'negotiable';
+  email: string;
+  bio?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  phone?: string;
 }
 
-// Mock candidates data
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Alex Thompson',
-    title: 'Senior Full Stack Developer',
-    location: 'San Francisco, CA',
-    avatar: 'https://ui-avatars.com/api/?name=Alex+Thompson&background=6366f1&color=fff',
-    skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS'],
-    experience: '7 years',
-    education: 'MS Computer Science, Stanford',
-    matchScore: 95,
-    isShortlisted: false,
-    availability: 'immediate'
-  },
-  {
-    id: '2',
-    name: 'Maria Garcia',
-    title: 'Frontend Developer',
-    location: 'Austin, TX',
-    avatar: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=10b981&color=fff',
-    skills: ['React', 'Vue.js', 'CSS', 'JavaScript', 'Figma'],
-    experience: '5 years',
-    education: 'BS Computer Science, UT Austin',
-    matchScore: 88,
-    isShortlisted: true,
-    availability: '2weeks'
-  },
-  {
-    id: '3',
-    name: 'James Wilson',
-    title: 'Backend Engineer',
-    location: 'Seattle, WA',
-    avatar: 'https://ui-avatars.com/api/?name=James+Wilson&background=f59e0b&color=fff',
-    skills: ['Python', 'Django', 'PostgreSQL', 'Redis', 'Docker'],
-    experience: '6 years',
-    education: 'BS Software Engineering, UW',
-    matchScore: 82,
-    isShortlisted: false,
-    availability: '1month'
-  },
-  {
-    id: '4',
-    name: 'Sarah Chen',
-    title: 'DevOps Engineer',
-    location: 'Remote',
-    avatar: 'https://ui-avatars.com/api/?name=Sarah+Chen&background=ef4444&color=fff',
-    skills: ['Kubernetes', 'AWS', 'Terraform', 'CI/CD', 'Linux'],
-    experience: '4 years',
-    education: 'BS Computer Engineering, MIT',
-    matchScore: 79,
-    isShortlisted: true,
-    availability: 'negotiable'
-  },
-  {
-    id: '5',
-    name: 'David Kim',
-    title: 'Mobile Developer',
-    location: 'Los Angeles, CA',
-    avatar: 'https://ui-avatars.com/api/?name=David+Kim&background=8b5cf6&color=fff',
-    skills: ['React Native', 'Swift', 'Kotlin', 'Firebase', 'GraphQL'],
-    experience: '5 years',
-    education: 'BS Computer Science, UCLA',
-    matchScore: 75,
-    isShortlisted: false,
-    availability: 'immediate'
-  },
-  {
-    id: '6',
-    name: 'Emily Brown',
-    title: 'Data Scientist',
-    location: 'Boston, MA',
-    avatar: 'https://ui-avatars.com/api/?name=Emily+Brown&background=06b6d4&color=fff',
-    skills: ['Python', 'TensorFlow', 'SQL', 'Machine Learning', 'Statistics'],
-    experience: '4 years',
-    education: 'PhD Data Science, Harvard',
-    matchScore: 71,
-    isShortlisted: false,
-    availability: '2weeks'
-  }
-];
+// Profile Modal Component
+const ProfileModal: React.FC<{
+  candidate: Candidate | null;
+  onClose: () => void;
+  onToggleShortlist: (id: number) => void;
+}> = ({ candidate, onClose, onToggleShortlist }) => {
+  if (!candidate) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+          {/* Header with gradient background */}
+          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <X className="h-5 w-5 text-white" />
+            </button>
+            
+            <div className="flex items-center space-x-4">
+              <img
+                src={candidate.avatar}
+                alt={candidate.name}
+                className="h-20 w-20 rounded-full border-4 border-white shadow-lg"
+              />
+              <div className="text-white">
+                <h2 className="text-2xl font-bold">{candidate.name}</h2>
+                <p className="text-blue-100">{candidate.title}</p>
+                <div className="flex items-center mt-1 text-blue-100">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  {candidate.location}
+                </div>
+              </div>
+            </div>
+            
+            {/* Match Score Badge */}
+            <div className="absolute top-4 left-6 bg-white rounded-full px-3 py-1 shadow-lg">
+              <span className="text-lg font-bold text-blue-600">{candidate.matchScore}%</span>
+              <span className="text-xs text-gray-500 ml-1">Match</span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-6 overflow-y-auto max-h-[50vh]">
+            {/* Bio */}
+            {candidate.bio && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h3>
+                <p className="text-gray-700 leading-relaxed">{candidate.bio}</p>
+              </div>
+            )}
+
+            {/* Skills */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {candidate.skills.length > 0 ? (
+                  candidate.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
+                    >
+                      {skill}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm">No skills listed</span>
+                )}
+              </div>
+            </div>
+
+            {/* Experience & Education */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center mb-2">
+                  <Briefcase className="h-5 w-5 text-blue-600 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700">Experience</h3>
+                </div>
+                <p className="text-gray-600">{candidate.experience}</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center mb-2">
+                  <GraduationCap className="h-5 w-5 text-blue-600 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700">Education</h3>
+                </div>
+                <p className="text-gray-600">{candidate.education}</p>
+              </div>
+            </div>
+
+            {/* Contact & Links */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact & Links</h3>
+              <div className="space-y-2">
+                <a
+                  href={`mailto:${candidate.email}`}
+                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                  {candidate.email}
+                </a>
+                {candidate.phone && (
+                  <div className="flex items-center text-gray-600">
+                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                    {candidate.phone}
+                  </div>
+                )}
+                {candidate.linkedin && (
+                  <a
+                    href={candidate.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Linkedin className="h-4 w-4 mr-3 text-gray-400" />
+                    LinkedIn Profile
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+                {candidate.github && (
+                  <a
+                    href={candidate.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Github className="h-4 w-4 mr-3 text-gray-400" />
+                    GitHub Profile
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+                {candidate.portfolio && (
+                  <a
+                    href={candidate.portfolio}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    <Globe className="h-4 w-4 mr-3 text-gray-400" />
+                    Portfolio Website
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+            <button
+              onClick={() => onToggleShortlist(candidate.id)}
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
+                candidate.isShortlisted
+                  ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Star className={`h-5 w-5 mr-2 ${candidate.isShortlisted ? 'fill-yellow-500' : ''}`} />
+              {candidate.isShortlisted ? 'Shortlisted' : 'Add to Shortlist'}
+            </button>
+            <a
+              href={`mailto:${candidate.email}`}
+              className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Mail className="h-5 w-5 mr-2" />
+              Send Message
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const TalentPool: React.FC = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
-  const allSkills = Array.from(new Set(mockCandidates.flatMap(c => c.skills)));
+  // Fetch seekers from API
+  useEffect(() => {
+    const loadSeekers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const seekers = await fetchSeekers();
+        
+        // Map UserProfile to Candidate format
+        const mappedCandidates: Candidate[] = seekers.map((seeker: UserProfile) => ({
+          id: seeker.id,
+          name: seeker.name || seeker.username,
+          title: seeker.bio?.split('\n')[0] || 'Job Seeker',
+          location: seeker.location || 'Not specified',
+          avatar: seeker.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(seeker.name || seeker.username)}&background=6366f1&color=fff`,
+          skills: seeker.skills || [],
+          experience: seeker.experience || 'Not specified',
+          education: seeker.education || 'Not specified',
+          matchScore: Math.floor(Math.random() * 30) + 70, // Random score for now (70-100)
+          isShortlisted: false,
+          email: seeker.email,
+          bio: seeker.bio,
+          linkedin: seeker.linkedin,
+          github: seeker.github,
+          portfolio: seeker.portfolio,
+          phone: seeker.phone,
+        }));
+        
+        setCandidates(mappedCandidates);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load candidates');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSeekers();
+  }, []);
+
+  const allSkills = Array.from(new Set(candidates.flatMap(c => c.skills)));
 
   const filteredCandidates = candidates.filter(candidate => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,37 +263,13 @@ export const TalentPool: React.FC = () => {
     return matchesSearch && matchesSkill && matchesShortlist;
   });
 
-  const toggleShortlist = (id: string) => {
+  const toggleShortlist = (id: number) => {
     setCandidates(prev =>
       prev.map(c => c.id === id ? { ...c, isShortlisted: !c.isShortlisted } : c)
     );
   };
 
-  const getAvailabilityBadge = (availability: string) => {
-    switch (availability) {
-      case 'immediate':
-        return 'bg-green-100 text-green-700';
-      case '2weeks':
-        return 'bg-blue-100 text-blue-700';
-      case '1month':
-        return 'bg-yellow-100 text-yellow-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
 
-  const getAvailabilityText = (availability: string) => {
-    switch (availability) {
-      case 'immediate':
-        return 'Available Immediately';
-      case '2weeks':
-        return 'Available in 2 Weeks';
-      case '1month':
-        return 'Available in 1 Month';
-      default:
-        return 'Negotiable';
-    }
-  };
 
   return (
     <Layout>
@@ -163,7 +287,24 @@ export const TalentPool: React.FC = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">Loading candidates...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex-1 relative">
@@ -222,10 +363,14 @@ export const TalentPool: React.FC = () => {
                       <img
                         src={candidate.avatar}
                         alt={candidate.name}
-                        className="h-12 w-12 sm:h-16 sm:w-16 rounded-full flex-shrink-0"
+                        className="h-12 w-12 sm:h-16 sm:w-16 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all"
+                        onClick={() => setSelectedCandidate(candidate)}
                       />
                       <div className="min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate">
+                        <h3 
+                          onClick={() => setSelectedCandidate(candidate)}
+                          className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate"
+                        >
                           {candidate.name}
                         </h3>
                         <p className="text-sm sm:text-base text-gray-600 truncate">{candidate.title}</p>
@@ -285,17 +430,59 @@ export const TalentPool: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Social Links */}
+                  {(candidate.linkedin || candidate.github || candidate.portfolio) && (
+                    <div className="mt-3 flex items-center space-x-3">
+                      {candidate.linkedin && (
+                        <a
+                          href={candidate.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                          title="LinkedIn"
+                        >
+                          <Linkedin className="h-4 w-4" />
+                        </a>
+                      )}
+                      {candidate.github && (
+                        <a
+                          href={candidate.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          title="GitHub"
+                        >
+                          <Github className="h-4 w-4" />
+                        </a>
+                      )}
+                      {candidate.portfolio && (
+                        <a
+                          href={candidate.portfolio}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                          title="Portfolio"
+                        >
+                          <Globe className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAvailabilityBadge(candidate.availability)}`}>
-                        {getAvailabilityText(candidate.availability)}
-                      </span>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-3">
                       <div className="flex items-center space-x-2 w-full sm:w-auto">
-                        <button className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center">
+                        <a 
+                          href={`mailto:${candidate.email}`}
+                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
+                        >
                           <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Contact
-                        </button>
-                        <button className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        </a>
+                        <button 
+                          onClick={() => setSelectedCandidate(candidate)}
+                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                        >
                           <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Profile
                         </button>
@@ -307,7 +494,24 @@ export const TalentPool: React.FC = () => {
             ))
           )}
         </div>
+          </>
+        )}
       </div>
+
+      {/* Profile Modal */}
+      {selectedCandidate && (
+        <ProfileModal
+          candidate={selectedCandidate}
+          onClose={() => setSelectedCandidate(null)}
+          onToggleShortlist={(id) => {
+            toggleShortlist(id);
+            // Update the selected candidate's shortlist status
+            setSelectedCandidate(prev => 
+              prev ? { ...prev, isShortlisted: !prev.isShortlisted } : null
+            );
+          }}
+        />
+      )}
     </Layout>
   );
 };
