@@ -1,123 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout } from '../components/Layout';
-import { Search, Send, MoreHorizontal, Phone, Video, Image, Paperclip, Smile, Circle } from 'lucide-react';
-
-interface Message {
-  id: string;
-  senderId: string;
-  content: string;
-  timestamp: Date;
-  isRead: boolean;
-}
-
-interface Conversation {
-  id: string;
-  participant: {
-    id: string;
-    name: string;
-    title: string;
-    company: string;
-    avatar: string;
-    isOnline: boolean;
-  };
-  messages: Message[];
-  lastMessage: string;
-  lastMessageTime: Date;
-  unreadCount: number;
-}
-
-// Mock conversations data
-const mockConversations: Conversation[] = [
-  {
-    id: '1',
-    participant: {
-      id: 'u1',
-      name: 'Sarah Johnson',
-      title: 'Senior Recruiter',
-      company: 'Google',
-      avatar: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=6366f1&color=fff',
-      isOnline: true
-    },
-    messages: [
-      { id: 'm1', senderId: 'u1', content: 'Hi! I came across your profile and I think you would be a great fit for a Senior Developer position at Google.', timestamp: new Date('2026-01-19T10:00:00'), isRead: true },
-      { id: 'm2', senderId: 'me', content: 'Hi Sarah! Thank you for reaching out. I would love to learn more about the opportunity.', timestamp: new Date('2026-01-19T10:15:00'), isRead: true },
-      { id: 'm3', senderId: 'u1', content: 'Great! The role involves working on our cloud infrastructure team. Would you be available for a quick call this week?', timestamp: new Date('2026-01-19T10:30:00'), isRead: true },
-      { id: 'm4', senderId: 'me', content: 'Yes, I am available Thursday or Friday afternoon. What works best for you?', timestamp: new Date('2026-01-19T10:45:00'), isRead: true },
-      { id: 'm5', senderId: 'u1', content: 'Thursday at 2 PM works perfectly! I will send you a calendar invite shortly.', timestamp: new Date('2026-01-19T11:00:00'), isRead: false }
-    ],
-    lastMessage: 'Thursday at 2 PM works perfectly!',
-    lastMessageTime: new Date('2026-01-19T11:00:00'),
-    unreadCount: 1
-  },
-  {
-    id: '2',
-    participant: {
-      id: 'u2',
-      name: 'Michael Chen',
-      title: 'Engineering Manager',
-      company: 'Microsoft',
-      avatar: 'https://ui-avatars.com/api/?name=Michael+Chen&background=10b981&color=fff',
-      isOnline: false
-    },
-    messages: [
-      { id: 'm6', senderId: 'u2', content: 'Hey! It was great meeting you at the tech conference last week.', timestamp: new Date('2026-01-18T14:00:00'), isRead: true },
-      { id: 'm7', senderId: 'me', content: 'Hi Michael! Yes, it was great connecting. Your talk on microservices was really insightful.', timestamp: new Date('2026-01-18T14:30:00'), isRead: true },
-      { id: 'm8', senderId: 'u2', content: 'Thanks! Let me know if you ever want to grab coffee and chat more about career opportunities.', timestamp: new Date('2026-01-18T15:00:00'), isRead: true }
-    ],
-    lastMessage: 'Let me know if you ever want to grab coffee',
-    lastMessageTime: new Date('2026-01-18T15:00:00'),
-    unreadCount: 0
-  },
-  {
-    id: '3',
-    participant: {
-      id: 'u3',
-      name: 'Emily Rodriguez',
-      title: 'Tech Lead',
-      company: 'Netflix',
-      avatar: 'https://ui-avatars.com/api/?name=Emily+Rodriguez&background=f59e0b&color=fff',
-      isOnline: true
-    },
-    messages: [
-      { id: 'm9', senderId: 'me', content: 'Hi Emily, I saw your post about the new streaming architecture. Really impressive work!', timestamp: new Date('2026-01-17T09:00:00'), isRead: true },
-      { id: 'm10', senderId: 'u3', content: 'Thank you! It was a challenging project but the team did amazing work.', timestamp: new Date('2026-01-17T09:30:00'), isRead: true }
-    ],
-    lastMessage: 'Thank you! It was a challenging project',
-    lastMessageTime: new Date('2026-01-17T09:30:00'),
-    unreadCount: 0
-  },
-  {
-    id: '4',
-    participant: {
-      id: 'u4',
-      name: 'David Kim',
-      title: 'Hiring Manager',
-      company: 'Stripe',
-      avatar: 'https://ui-avatars.com/api/?name=David+Kim&background=ef4444&color=fff',
-      isOnline: false
-    },
-    messages: [
-      { id: 'm11', senderId: 'u4', content: 'We reviewed your application for the Full Stack Developer position. Congratulations, we would like to move forward with an interview!', timestamp: new Date('2026-01-16T16:00:00'), isRead: true }
-    ],
-    lastMessage: 'We would like to move forward with an interview!',
-    lastMessageTime: new Date('2026-01-16T16:00:00'),
-    unreadCount: 0
-  }
-];
+import { Search, Send, MoreHorizontal, Phone, Video, Image, Paperclip, Smile, Circle, Loader2, MessageSquare } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore';
+import { 
+  getConversations, 
+  getConversation, 
+  replyToConversation,
+  Conversation,
+  ConversationDetail,
+  Message
+} from '../API/messageApi';
 
 export const Messages: React.FC = () => {
-  const [conversations] = useState<Conversation[]>(mockConversations);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(mockConversations[0]);
+  const { user } = useAuthStore();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationDetail | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [showConversationList, setShowConversationList] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.participant.company.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  const formatTime = (date: Date) => {
+  useEffect(() => {
+    loadConversations();
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [selectedConversation?.messages]);
+
+  const loadConversations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getConversations();
+      setConversations(data);
+      // Select first conversation if available
+      if (data.length > 0 && !selectedConversationId) {
+        selectConversation(data[0].id);
+      }
+    } catch (err: any) {
+      console.error('Failed to load conversations:', err);
+      setError('Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectConversation = async (conversationId: number) => {
+    try {
+      setLoadingMessages(true);
+      setSelectedConversationId(conversationId);
+      setShowConversationList(false);
+      const data = await getConversation(conversationId);
+      setSelectedConversation(data);
+      
+      // Update unread count in conversations list
+      setConversations(prev => 
+        prev.map(c => c.id === conversationId ? { ...c, unread_count: 0 } : c)
+      );
+    } catch (err: any) {
+      console.error('Failed to load conversation:', err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  const filteredConversations = conversations.filter(conv => {
+    const participant = conv.participant;
+    return participant?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           participant?.company?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -133,12 +97,41 @@ export const Messages: React.FC = () => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // In a real app, this would send the message to the server
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation?.id || sending) return;
+
+    try {
+      setSending(true);
+      const sentMessage = await replyToConversation(selectedConversation.id, newMessage.trim());
+      
+      // Add message to current conversation
+      setSelectedConversation(prev => prev ? {
+        ...prev,
+        messages: [...prev.messages, sentMessage]
+      } : null);
+
+      // Update last message in conversations list
+      setConversations(prev => 
+        prev.map(c => c.id === selectedConversation.id ? {
+          ...c,
+          last_message: {
+            content: sentMessage.content,
+            created_at: sentMessage.created_at,
+            sender_id: sentMessage.sender_id
+          },
+          updated_at: sentMessage.created_at
+        } : c)
+      );
+
       setNewMessage('');
+    } catch (err: any) {
+      console.error('Failed to send message:', err);
+    } finally {
+      setSending(false);
     }
   };
+
+  const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
 
   return (
     <Layout>
@@ -150,7 +143,14 @@ export const Messages: React.FC = () => {
               {/* Header */}
               <div className="p-3 sm:p-4 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Messaging</h2>
+                  <div className="flex items-center">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Messaging</h2>
+                    {totalUnread > 0 && (
+                      <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {totalUnread}
+                      </span>
+                    )}
+                  </div>
                   <button className="text-gray-400 hover:text-gray-600">
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
@@ -169,45 +169,64 @@ export const Messages: React.FC = () => {
 
               {/* Conversations */}
               <div className="flex-1 overflow-y-auto">
-                {filteredConversations.map(conversation => (
-                  <div
-                    key={conversation.id}
-                    onClick={() => {
-                      setSelectedConversation(conversation);
-                      setShowConversationList(false);
-                    }}
-                    className={`flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-                      selectedConversation?.id === conversation.id ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className="relative">
-                      <img
-                        src={conversation.participant.avatar}
-                        alt={conversation.participant.name}
-                        className="h-12 w-12 rounded-full"
-                      />
-                      {conversation.participant.isOnline && (
-                        <Circle className="absolute bottom-0 right-0 h-3 w-3 text-green-500 fill-green-500" />
-                      )}
-                    </div>
-                    <div className="ml-3 flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className={`text-sm font-medium truncate ${conversation.unreadCount > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {conversation.participant.name}
-                        </p>
-                        <span className="text-xs text-gray-500">{formatTime(conversation.lastMessageTime)}</span>
-                      </div>
-                      <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
-                        {conversation.lastMessage}
-                      </p>
-                    </div>
-                    {conversation.unreadCount > 0 && (
-                      <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {conversation.unreadCount}
-                      </span>
-                    )}
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                   </div>
-                ))}
+                ) : error ? (
+                  <div className="p-4 text-center text-red-500">{error}</div>
+                ) : filteredConversations.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No messages yet</p>
+                    <p className="text-sm mt-1">When employers contact you, messages will appear here</p>
+                  </div>
+                ) : (
+                  filteredConversations.map(conversation => {
+                    const participant = conversation.participant;
+                    const avatarUrl = participant?.avatar || 
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(participant?.name || 'Company')}&background=6366f1&color=fff`;
+                    
+                    return (
+                      <div
+                        key={conversation.id}
+                        onClick={() => selectConversation(conversation.id)}
+                        className={`flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
+                          selectedConversationId === conversation.id ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <div className="relative">
+                          <img
+                            src={avatarUrl}
+                            alt={participant?.name || 'Company'}
+                            className="h-12 w-12 rounded-full"
+                          />
+                        </div>
+                        <div className="ml-3 flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className={`text-sm font-medium truncate ${conversation.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+                              {participant?.name || 'Unknown'}
+                            </p>
+                            {conversation.last_message && (
+                              <span className="text-xs text-gray-500">
+                                {formatTime(conversation.last_message.created_at)}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-blue-600 truncate">{participant?.company || 'Employer'}</p>
+                          <p className={`text-sm truncate ${conversation.unread_count > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                            {conversation.last_message?.content || 'No messages yet'}
+                          </p>
+                        </div>
+                        {conversation.unread_count > 0 && (
+                          <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {conversation.unread_count}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -228,18 +247,18 @@ export const Messages: React.FC = () => {
                   <div className="flex items-center flex-1 min-w-0">
                     <div className="relative flex-shrink-0">
                       <img
-                        src={selectedConversation.participant.avatar}
-                        alt={selectedConversation.participant.name}
+                        src={selectedConversation.participant?.avatar || 
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedConversation.participant?.name || 'Company')}&background=6366f1&color=fff`}
+                        alt={selectedConversation.participant?.name || 'Company'}
                         className="h-8 w-8 sm:h-10 sm:w-10 rounded-full"
                       />
-                      {selectedConversation.participant.isOnline && (
-                        <Circle className="absolute bottom-0 right-0 h-2 w-2 sm:h-2.5 sm:w-2.5 text-green-500 fill-green-500" />
-                      )}
                     </div>
                     <div className="ml-2 sm:ml-3 min-w-0">
-                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{selectedConversation.participant.name}</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                        {selectedConversation.participant?.name || 'Unknown'}
+                      </p>
                       <p className="text-xs text-gray-500 truncate">
-                        <span className="hidden sm:inline">{selectedConversation.participant.title} at</span> {selectedConversation.participant.company}
+                        {selectedConversation.participant?.company || 'Employer'}
                       </p>
                     </div>
                   </div>
@@ -258,23 +277,41 @@ export const Messages: React.FC = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {selectedConversation.messages.map(message => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                        message.senderId === 'me'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}>
-                        <p className="text-sm">{message.content}</p>
-                        <p className={`text-xs mt-1 ${message.senderId === 'me' ? 'text-blue-200' : 'text-gray-500'}`}>
-                          {formatTime(message.timestamp)}
-                        </p>
-                      </div>
+                  {loadingMessages ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                     </div>
-                  ))}
+                  ) : selectedConversation.messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                      <MessageSquare className="h-12 w-12 mb-4 text-gray-300" />
+                      <p>No messages yet</p>
+                      <p className="text-sm mt-1">Start the conversation!</p>
+                    </div>
+                  ) : (
+                    <>
+                      {selectedConversation.messages.map(message => {
+                        const isMe = message.sender_id === user?.id;
+                        return (
+                          <div
+                            key={message.id}
+                            className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                              isMe
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-900'
+                            }`}>
+                              <p className="text-sm">{message.content}</p>
+                              <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-500'}`}>
+                                {formatTime(message.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </>
+                  )}
                 </div>
 
                 {/* Message Input */}
@@ -293,7 +330,8 @@ export const Messages: React.FC = () => {
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        disabled={sending}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                       />
                       <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
                         <Smile className="h-5 w-5" />
@@ -301,16 +339,24 @@ export const Messages: React.FC = () => {
                     </div>
                     <button
                       onClick={handleSendMessage}
-                      className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+                      disabled={!newMessage.trim() || sending}
+                      className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Send className="h-5 w-5" />
+                      {sending ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
               <div className={`${!showConversationList ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-500 p-4`}>
-                <p className="text-center text-sm sm:text-base">Select a conversation to start messaging</p>
+                <div className="text-center">
+                  <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-center text-sm sm:text-base">Select a conversation to start messaging</p>
+                </div>
               </div>
             )}
           </div>

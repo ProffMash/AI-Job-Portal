@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code, Loader2, X, Linkedin, Github, Globe, Phone } from 'lucide-react';
+import { ChatModal } from '../components/ChatModal';
+import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code, Loader2, X, Linkedin, Github, Globe, Phone, MessageCircle } from 'lucide-react';
 import { fetchSeekers, UserProfile } from '../API/profileApi';
 import { useSavedCandidatesStore } from '../stores/savedCandidatesStore';
 
@@ -191,13 +192,18 @@ const ProfileModal: React.FC<{
               <Star className={`h-5 w-5 mr-2 ${candidate.isShortlisted ? 'fill-yellow-500' : ''}`} />
               {candidate.isShortlisted ? 'Shortlisted' : 'Add to Shortlist'}
             </button>
-            <a
-              href={`mailto:${candidate.email}`}
+            <button
+              onClick={() => {
+                onClose();
+                // Trigger chat modal - we'll handle this via the parent component
+                const event = new CustomEvent('openChat', { detail: candidate });
+                window.dispatchEvent(event);
+              }}
               className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
-              <Mail className="h-5 w-5 mr-2" />
+              <MessageCircle className="h-5 w-5 mr-2" />
               Send Message
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -213,6 +219,7 @@ export const TalentPool: React.FC = () => {
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [chatCandidate, setChatCandidate] = useState<Candidate | null>(null);
 
   // Use saved candidates store
   const { addCandidate, removeCandidate, isShortlisted, fetchCandidates: fetchSavedCandidates, savedCandidates } = useSavedCandidatesStore();
@@ -221,6 +228,17 @@ export const TalentPool: React.FC = () => {
   useEffect(() => {
     fetchSavedCandidates();
   }, [fetchSavedCandidates]);
+
+  // Listen for openChat event from ProfileModal
+  useEffect(() => {
+    const handleOpenChat = (event: CustomEvent<Candidate>) => {
+      setChatCandidate(event.detail);
+    };
+    window.addEventListener('openChat', handleOpenChat as EventListener);
+    return () => {
+      window.removeEventListener('openChat', handleOpenChat as EventListener);
+    };
+  }, []);
 
   // Fetch seekers from API
   useEffect(() => {
@@ -513,13 +531,13 @@ export const TalentPool: React.FC = () => {
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-3">
                       <div className="flex items-center space-x-2 w-full sm:w-auto">
-                        <a 
-                          href={`mailto:${candidate.email}`}
+                        <button 
+                          onClick={() => setChatCandidate(candidate)}
                           className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
                         >
-                          <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Contact
-                        </a>
+                        </button>
                         <button 
                           onClick={() => setSelectedCandidate(candidate)}
                           className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
@@ -551,6 +569,18 @@ export const TalentPool: React.FC = () => {
               prev ? { ...prev, isShortlisted: !prev.isShortlisted } : null
             );
           }}
+        />
+      )}
+
+      {/* Chat Modal */}
+      {chatCandidate && (
+        <ChatModal
+          isOpen={!!chatCandidate}
+          onClose={() => setChatCandidate(null)}
+          recipientId={chatCandidate.id}
+          recipientName={chatCandidate.name}
+          recipientAvatar={chatCandidate.avatar}
+          recipientTitle={chatCandidate.title}
         />
       )}
     </Layout>
