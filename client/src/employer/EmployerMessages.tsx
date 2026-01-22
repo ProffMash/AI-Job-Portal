@@ -136,33 +136,33 @@ export const EmployerMessages: React.FC = () => {
   return (
     <Layout>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" style={{ height: 'calc(100vh - 180px)', minHeight: '500px' }}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors" style={{ height: 'calc(100vh - 180px)', minHeight: '500px' }}>
           <div className="flex h-full">
             {/* Conversations List */}
-            <div className={`${showConversationList ? 'flex' : 'hidden'} md:flex w-full md:w-1/3 border-r border-gray-200 flex-col`}>
+            <div className={`${showConversationList ? 'flex' : 'hidden'} md:flex w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 flex-col`}>
               {/* Header */}
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Messages</h2>
                     {totalUnread > 0 && (
                       <span className="ml-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                         {totalUnread}
                       </span>
                     )}
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600">
+                  <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
                 </div>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
                   <input
                     type="text"
                     placeholder="Search candidates"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-gray-100 border-0 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border-0 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -174,10 +174,10 @@ export const EmployerMessages: React.FC = () => {
                     <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                   </div>
                 ) : error ? (
-                  <div className="p-4 text-center text-red-500">{error}</div>
+                  <div className="p-4 text-center text-red-500 dark:text-red-400">{error}</div>
                 ) : filteredConversations.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                     <p>No conversations yet</p>
                     <p className="text-sm mt-1">Start by contacting candidates from the Talent Pool</p>
                   </div>
@@ -191,8 +191,8 @@ export const EmployerMessages: React.FC = () => {
                       <div
                         key={conversation.id}
                         onClick={() => selectConversation(conversation.id)}
-                        className={`flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-                          selectedConversationId === conversation.id ? 'bg-blue-50' : ''
+                        className={`flex items-center p-3 sm:p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 ${
+                          selectedConversationId === conversation.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''
                         }`}
                       >
                         <div className="relative">
@@ -204,17 +204,17 @@ export const EmployerMessages: React.FC = () => {
                         </div>
                         <div className="ml-3 flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <p className={`text-sm font-medium truncate ${conversation.unread_count > 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+                            <p className={`text-sm font-medium truncate ${conversation.unread_count > 0 ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                               {participant?.name || 'Unknown User'}
                             </p>
                             {conversation.last_message && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {formatTime(conversation.last_message.created_at)}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-blue-600 truncate">{participant?.bio?.split('\n')[0] || 'Job Seeker'}</p>
-                          <p className={`text-sm truncate ${conversation.unread_count > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                          <p className="text-xs text-blue-600 dark:text-blue-400 truncate">{participant?.bio?.split('\n')[0] || 'Job Seeker'}</p>
+                          <p className={`text-sm truncate ${conversation.unread_count > 0 ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
                             {conversation.last_message?.content || 'No messages yet'}
                           </p>
                         </div>
@@ -234,11 +234,11 @@ export const EmployerMessages: React.FC = () => {
             {selectedConversation ? (
               <div className={`${!showConversationList ? 'flex' : 'hidden'} md:flex flex-1 flex-col`}>
                 {/* Chat Header */}
-                <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
+                <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                   {/* Back button for mobile */}
                   <button
                     onClick={() => setShowConversationList(true)}
-                    className="md:hidden p-2 mr-2 text-gray-500 hover:bg-gray-100 rounded-full"
+                    className="md:hidden p-2 mr-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                   >
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -254,25 +254,25 @@ export const EmployerMessages: React.FC = () => {
                       />
                     </div>
                     <div className="ml-2 sm:ml-3 min-w-0">
-                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">
                         {selectedConversation.participant?.name || 'Unknown User'}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {selectedConversation.participant?.bio?.split('\n')[0] || 'Job Seeker'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                    <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+                    <button className="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                       <User className="h-5 w-5" />
                     </button>
-                    <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+                    <button className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                       <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
-                    <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+                    <button className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                       <Video className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
-                    <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full">
+                    <button className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
                       <MoreHorizontal className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                   </div>
@@ -285,8 +285,8 @@ export const EmployerMessages: React.FC = () => {
                       <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                     </div>
                   ) : selectedConversation.messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                      <MessageSquare className="h-12 w-12 mb-4 text-gray-300" />
+                    <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                      <MessageSquare className="h-12 w-12 mb-4 text-gray-300 dark:text-gray-600" />
                       <p>No messages yet</p>
                       <p className="text-sm mt-1">Start the conversation!</p>
                     </div>
@@ -302,10 +302,10 @@ export const EmployerMessages: React.FC = () => {
                             <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
                               isMe
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-900'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                             }`}>
                               <p className="text-sm">{message.content}</p>
-                              <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-500'}`}>
+                              <p className={`text-xs mt-1 ${isMe ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400'}`}>
                                 {formatTime(message.created_at)}
                               </p>
                             </div>
@@ -318,12 +318,12 @@ export const EmployerMessages: React.FC = () => {
                 </div>
 
                 {/* Message Input */}
-                <div className="p-3 sm:p-4 border-t border-gray-200">
+                <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center space-x-1 sm:space-x-2">
-                    <button className="hidden sm:block p-2 text-gray-400 hover:text-gray-600">
+                    <button className="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                       <Image className="h-5 w-5" />
                     </button>
-                    <button className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600">
+                    <button className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                       <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                     <div className="flex-1 relative">
@@ -334,9 +334,9 @@ export const EmployerMessages: React.FC = () => {
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         disabled={sending}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       />
-                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                         <Smile className="h-5 w-5" />
                       </button>
                     </div>
@@ -355,9 +355,9 @@ export const EmployerMessages: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className={`${!showConversationList ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-500 p-4`}>
+              <div className={`${!showConversationList ? 'flex' : 'hidden'} md:flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400 p-4`}>
                 <div className="text-center">
-                  <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
                   <p className="text-center text-sm sm:text-base">Select a conversation to start messaging</p>
                 </div>
               </div>

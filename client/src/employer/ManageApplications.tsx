@@ -103,15 +103,15 @@ export const ManageApplications: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300';
       case 'reviewed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300';
       case 'accepted':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -128,66 +128,66 @@ export const ManageApplications: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Manage Applications</h1>
-          <p className="text-sm sm:text-base text-gray-600">Review and manage all applications for your job postings</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Manage Applications</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Review and manage all applications for your job postings</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-colors">
             <div className="flex items-center">
-              <Briefcase className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" />
+              <Briefcase className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 dark:text-gray-500" />
               <div className="ml-2 sm:ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.total}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Total</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Total</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-colors">
             <div className="flex items-center">
               <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-yellow-500" />
               <div className="ml-2 sm:ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.pending}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Pending</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Pending</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-colors">
             <div className="flex items-center">
               <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
               <div className="ml-2 sm:ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.reviewed}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Reviewed</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.reviewed}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Reviewed</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-colors">
             <div className="flex items-center">
               <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
               <div className="ml-2 sm:ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.accepted}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Accepted</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.accepted}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Accepted</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 col-span-2 sm:col-span-1">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 col-span-2 sm:col-span-1 transition-colors">
             <div className="flex items-center">
               <XCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500" />
               <div className="ml-2 sm:ml-3">
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.rejected}</p>
-                <p className="text-xs sm:text-sm text-gray-500">Rejected</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{stats.rejected}</p>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Rejected</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-4 sm:mb-6 transition-colors">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-center space-x-2 flex-shrink-0">
-                <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-                <span className="text-xs sm:text-sm text-gray-600">Status:</span>
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Status:</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {(['all', 'pending', 'reviewed', 'accepted', 'rejected'] as ApplicationStatus[]).map(status => (
@@ -197,7 +197,7 @@ export const ManageApplications: React.FC = () => {
                     className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full capitalize transition-colors ${
                       statusFilter === status
                         ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
                     {status}
@@ -207,11 +207,11 @@ export const ManageApplications: React.FC = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:space-x-4">
               <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <span className="text-xs sm:text-sm text-gray-600 flex-shrink-0">Job:</span>
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">Job:</span>
                 <select
                   value={jobFilter}
                   onChange={(e) => setJobFilter(e.target.value)}
-                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="all">All Jobs</option>
                   {employerJobs.map(job => (
@@ -220,11 +220,11 @@ export const ManageApplications: React.FC = () => {
                 </select>
               </div>
               <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <span className="text-xs sm:text-sm text-gray-600 flex-shrink-0">Sort:</span>
+                <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'date' | 'status')}
-                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="date">Date Applied</option>
                   <option value="status">Status</option>
@@ -237,21 +237,21 @@ export const ManageApplications: React.FC = () => {
         {/* Applications List */}
         <div className="space-y-4">
           {loading ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors">
               <Loader2 className="mx-auto h-12 w-12 text-blue-500 mb-4 animate-spin" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Loading applications...</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Loading applications...</h3>
             </div>
           ) : error ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors">
               <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading applications</h3>
-              <p className="text-gray-600">{error}</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Error loading applications</h3>
+              <p className="text-gray-600 dark:text-gray-400">{error}</p>
             </div>
           ) : filteredApplications.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
-              <p className="text-gray-600">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors">
+              <Briefcase className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No applications found</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 {employerJobs.length === 0
                   ? "Post a job to start receiving applications!"
                   : "No applications match your current filters."}
@@ -262,7 +262,7 @@ export const ManageApplications: React.FC = () => {
               const job = application.job_details;
 
               return (
-                <div key={application.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <div key={application.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all">
                   <div className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex items-start space-x-3 sm:space-x-4">
@@ -270,17 +270,17 @@ export const ManageApplications: React.FC = () => {
                           {application.seeker_name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer truncate">
                             {application.seeker_name}
                           </h3>
-                          <div className="flex items-center text-gray-600 mt-1">
+                          <div className="flex items-center text-gray-600 dark:text-gray-400 mt-1">
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                             <span className="text-xs sm:text-sm truncate">{application.seeker_email}</span>
                           </div>
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-1 sm:gap-3 mt-2 text-xs sm:text-sm text-gray-500">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-1 sm:gap-3 mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             <span className="flex items-center">
                               <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
-                              <span className="truncate">Applied for: <span className="font-medium text-gray-700">{job.title}</span></span>
+                              <span className="truncate">Applied for: <span className="font-medium text-gray-700 dark:text-gray-300">{job.title}</span></span>
                             </span>
                             <span className="flex items-center">
                               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
@@ -304,13 +304,13 @@ export const ManageApplications: React.FC = () => {
                             <Edit3 className="h-3 w-3 ml-1" />
                           </button>
                           {editingStatusId === application.id && (
-                            <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                            <div className="absolute right-0 mt-1 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
                               {(['pending', 'reviewed', 'accepted', 'rejected'] as const).map(status => (
                                 <button
                                   key={status}
                                   onClick={() => handleStatusUpdate(application.id, status)}
                                   disabled={updatingStatus === application.id}
-                                  className={`w-full px-3 py-2 text-left text-sm capitalize hover:bg-gray-50 flex items-center gap-2 ${application.status === status ? 'bg-gray-100 font-medium' : ''}`}
+                                  className={`w-full px-3 py-2 text-left text-sm capitalize hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300 ${application.status === status ? 'bg-gray-100 dark:bg-gray-700 font-medium' : ''}`}
                                 >
                                   {getStatusIcon(status)}
                                   {status}
@@ -326,14 +326,14 @@ export const ManageApplications: React.FC = () => {
                     </div>
 
                     {application.cover_letter && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600 font-medium mb-2">Cover Letter:</p>
-                        <p className="text-sm text-gray-700 line-clamp-3">{application.cover_letter}</p>
+                      <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2">Cover Letter:</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">{application.cover_letter}</p>
                       </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 sm:space-x-3">
                         <button 
                           onClick={() => setViewingProfile(application)}
@@ -342,11 +342,11 @@ export const ManageApplications: React.FC = () => {
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           View Profile
                         </button>
-                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center">
                           <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           <span className="hidden sm:inline">Download </span>Resume
                         </button>
-                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center">
+                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center">
                           <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Contact
                         </button>
@@ -357,14 +357,14 @@ export const ManageApplications: React.FC = () => {
                             <button
                               onClick={() => handleStatusUpdate(application.id, 'accepted')}
                               disabled={updatingStatus === application.id}
-                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-green-600 border border-green-600 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-green-600 dark:text-green-400 border border-green-600 dark:border-green-500 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {updatingStatus === application.id ? 'Updating...' : 'Accept'}
                             </button>
                             <button
                               onClick={() => handleStatusUpdate(application.id, 'rejected')}
                               disabled={updatingStatus === application.id}
-                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 border border-red-600 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {updatingStatus === application.id ? 'Updating...' : 'Reject'}
                             </button>
@@ -374,18 +374,18 @@ export const ManageApplications: React.FC = () => {
                           <button
                             onClick={() => handleStatusUpdate(application.id, 'reviewed')}
                             disabled={updatingStatus === application.id}
-                            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {updatingStatus === application.id ? 'Updating...' : 'Mark Reviewed'}
                           </button>
                         )}
-                        <button className="p-2 text-gray-400 hover:text-yellow-500 transition-colors">
+                        <button className="p-2 text-gray-400 dark:text-gray-500 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors">
                           <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(application.id)}
                           disabled={deletingId === application.id}
-                          className="p-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           title="Delete application"
                         >
                           {deletingId === application.id ? (
@@ -407,15 +407,15 @@ export const ManageApplications: React.FC = () => {
       {/* Profile Modal */}
       {viewingProfile && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Candidate Profile</h2>
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Candidate Profile</h2>
               <button
                 onClick={() => setViewingProfile(null)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
@@ -435,10 +435,10 @@ export const ManageApplications: React.FC = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900">{viewingProfile.seeker_name}</h3>
-                  <p className="text-gray-600">{viewingProfile.seeker_email}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{viewingProfile.seeker_name}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{viewingProfile.seeker_email}</p>
                   {viewingProfile.seeker_details.location && (
-                    <p className="text-gray-500 flex items-center mt-1">
+                    <p className="text-gray-500 dark:text-gray-400 flex items-center mt-1">
                       <MapPin className="h-4 w-4 mr-1" />
                       {viewingProfile.seeker_details.location}
                     </p>
@@ -447,46 +447,46 @@ export const ManageApplications: React.FC = () => {
               </div>
 
               {/* Contact Info */}
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                   <User className="h-4 w-4 mr-2" />
                   Contact Information
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-center text-sm">
-                    <Mail className="h-4 w-4 text-gray-400 mr-2" />
-                    <a href={`mailto:${viewingProfile.seeker_email}`} className="text-blue-600 hover:underline">
+                    <Mail className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                    <a href={`mailto:${viewingProfile.seeker_email}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                       {viewingProfile.seeker_email}
                     </a>
                   </div>
                   {viewingProfile.seeker_details.phone && (
                     <div className="flex items-center text-sm">
-                      <Phone className="h-4 w-4 text-gray-400 mr-2" />
-                      <a href={`tel:${viewingProfile.seeker_details.phone}`} className="text-blue-600 hover:underline">
+                      <Phone className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                      <a href={`tel:${viewingProfile.seeker_details.phone}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                         {viewingProfile.seeker_details.phone}
                       </a>
                     </div>
                   )}
                   {viewingProfile.seeker_details.linkedin && (
                     <div className="flex items-center text-sm">
-                      <Linkedin className="h-4 w-4 text-gray-400 mr-2" />
-                      <a href={viewingProfile.seeker_details.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                      <Linkedin className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                      <a href={viewingProfile.seeker_details.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate">
                         LinkedIn Profile
                       </a>
                     </div>
                   )}
                   {viewingProfile.seeker_details.github && (
                     <div className="flex items-center text-sm">
-                      <Github className="h-4 w-4 text-gray-400 mr-2" />
-                      <a href={viewingProfile.seeker_details.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                      <Github className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                      <a href={viewingProfile.seeker_details.github} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate">
                         GitHub Profile
                       </a>
                     </div>
                   )}
                   {viewingProfile.seeker_details.portfolio && (
                     <div className="flex items-center text-sm">
-                      <Link className="h-4 w-4 text-gray-400 mr-2" />
-                      <a href={viewingProfile.seeker_details.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                      <Link className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                      <a href={viewingProfile.seeker_details.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate">
                         Portfolio
                       </a>
                     </div>
@@ -497,18 +497,18 @@ export const ManageApplications: React.FC = () => {
               {/* Bio */}
               {viewingProfile.seeker_details.bio && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-2">About</h4>
-                  <p className="text-gray-700 text-sm leading-relaxed">{viewingProfile.seeker_details.bio}</p>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">About</h4>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{viewingProfile.seeker_details.bio}</p>
                 </div>
               )}
 
               {/* Skills */}
               {viewingProfile.seeker_details.skills && viewingProfile.seeker_details.skills.length > 0 && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Skills</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Skills</h4>
                   <div className="flex flex-wrap gap-2">
                     {viewingProfile.seeker_details.skills.map((skill, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                      <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                         {skill}
                       </span>
                     ))}
@@ -519,11 +519,11 @@ export const ManageApplications: React.FC = () => {
               {/* Experience */}
               {viewingProfile.seeker_details.experience && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
                     <Briefcase className="h-4 w-4 mr-2" />
                     Experience
                   </h4>
-                  <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                     {viewingProfile.seeker_details.experience}
                   </p>
                 </div>
@@ -532,11 +532,11 @@ export const ManageApplications: React.FC = () => {
               {/* Education */}
               {viewingProfile.seeker_details.education && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
                     <GraduationCap className="h-4 w-4 mr-2" />
                     Education
                   </h4>
-                  <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                     {viewingProfile.seeker_details.education}
                   </p>
                 </div>
@@ -545,9 +545,9 @@ export const ManageApplications: React.FC = () => {
               {/* Cover Letter for this application */}
               {viewingProfile.cover_letter && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-2">Cover Letter for {viewingProfile.job_details.title}</h4>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Cover Letter for {viewingProfile.job_details.title}</h4>
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                       {viewingProfile.cover_letter}
                     </p>
                   </div>
@@ -555,9 +555,9 @@ export const ManageApplications: React.FC = () => {
               )}
 
               {/* Application Info */}
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Application Details</h4>
-                <div className="text-sm text-gray-700 space-y-1">
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Application Details</h4>
+                <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                   <p><span className="font-medium">Applied for:</span> {viewingProfile.job_details.title}</p>
                   <p><span className="font-medium">Applied on:</span> {new Date(viewingProfile.applied_at).toLocaleDateString('en-US', { 
                     month: 'long', 
@@ -575,10 +575,10 @@ export const ManageApplications: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end gap-3">
               <button
                 onClick={() => setViewingProfile(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 Close
               </button>

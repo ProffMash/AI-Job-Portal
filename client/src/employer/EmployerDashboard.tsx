@@ -213,10 +213,10 @@ export const EmployerDashboard: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Employer Dashboard
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Manage your job postings and review applications
             </p>
           </div>
@@ -231,36 +231,36 @@ export const EmployerDashboard: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Briefcase className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-                <p className="text-2xl font-bold text-gray-900">{employerJobs.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Jobs</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{employerJobs.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Applicants</p>
-                <p className="text-2xl font-bold text-gray-900">{totalApplicants}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Applicants</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalApplicants}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Eye className="h-6 w-6 text-purple-600" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending Reviews</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Reviews</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">0</p>
               </div>
             </div>
           </div>
@@ -268,14 +268,14 @@ export const EmployerDashboard: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {/* Job Listings */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Job Postings</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Job Postings</h2>
         </div>
 
         {loading ? (
@@ -285,10 +285,10 @@ export const EmployerDashboard: React.FC = () => {
         ) : (
         <div className="space-y-6">
           {employerJobs.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-              <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No job postings yet</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors">
+              <Briefcase className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No job postings yet</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Start by posting your first job opportunity
               </p>
               <button
@@ -300,12 +300,12 @@ export const EmployerDashboard: React.FC = () => {
             </div>
           ) : (
             employerJobs.map((job) => (
-              <div key={job.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow">
+              <div key={job.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
                   <div className="flex-1 w-full">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{job.title}</h3>
-                    <p className="text-base sm:text-lg text-blue-600 font-medium mb-2">{job.company}</p>
-                    <div className="flex flex-wrap items-center text-gray-500 text-xs sm:text-sm gap-2 sm:gap-4">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">{job.title}</h3>
+                    <p className="text-base sm:text-lg text-blue-600 dark:text-blue-400 font-medium mb-2">{job.company}</p>
+                    <div className="flex flex-wrap items-center text-gray-500 dark:text-gray-400 text-xs sm:text-sm gap-2 sm:gap-4">
                       <div className="flex items-center">
                         <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         {job.location}
@@ -324,34 +324,34 @@ export const EmployerDashboard: React.FC = () => {
                   </div>
                   <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:space-y-2 w-full sm:w-auto justify-between sm:justify-start">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      job.type === 'remote' ? 'bg-green-100 text-green-800' :
-                      job.type === 'full-time' ? 'bg-blue-100 text-blue-800' :
-                      job.type === 'part-time' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-purple-100 text-purple-800'
+                      job.type === 'remote' ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' :
+                      job.type === 'full-time' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300' :
+                      job.type === 'part-time' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300' :
+                      'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300'
                     }`}>
                       {job.type.replace('-', ' ').toUpperCase()}
                     </span>
-                    <div className="flex items-center text-gray-500 text-xs sm:text-sm">
+                    <div className="flex items-center text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                       <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       {job.applicant_count} applicants
                     </div>
                   </div>
                 </div>
 
-                <p className="text-gray-600 mb-4 line-clamp-2">{job.description}</p>
+                <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{job.description}</p>
 
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-2">
                     {job.requirements.slice(0, 5).map((req, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md"
+                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-md"
                       >
                         {req}
                       </span>
                     ))}
                     {job.requirements.length > 5 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-md">
+                      <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded-md">
                         +{job.requirements.length - 5} more
                       </span>
                     )}
@@ -359,17 +359,17 @@ export const EmployerDashboard: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-3 pt-4 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                   <button
                     onClick={() => handleOpenEditModal(job)}
-                    className="flex items-center justify-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors text-sm sm:text-base"
+                    className="flex items-center justify-center px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors text-sm sm:text-base"
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
                     Edit
                   </button>
                   <button
                     onClick={() => handleOpenDeleteModal(job)}
-                    className="flex items-center justify-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm sm:text-base"
+                    className="flex items-center justify-center px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition-colors text-sm sm:text-base"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
@@ -385,19 +385,19 @@ export const EmployerDashboard: React.FC = () => {
       {/* Create/Edit Job Modal */}
       {showJobModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {editingJob ? 'Edit Job Posting' : 'Post a New Job'}
                 </h2>
-                <p className="text-gray-600 text-sm mt-1">
+                <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                   {editingJob ? 'Update the job details below' : 'Fill out the details to create a new job posting'}
                 </p>
               </div>
               <button
                 onClick={handleCloseJobModal}
-                className="text-gray-400 hover:text-gray-600 p-2"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-2"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -406,7 +406,7 @@ export const EmployerDashboard: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Job Title *
                   </label>
                   <input
@@ -415,16 +415,16 @@ export const EmployerDashboard: React.FC = () => {
                     name="title"
                     value={formData.title}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.title ? 'border-red-300' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                      formErrors.title ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="e.g. Senior React Developer"
                   />
-                  {formErrors.title && <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>}
+                  {formErrors.title && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.title}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Company Name *
                   </label>
                   <input
@@ -433,18 +433,18 @@ export const EmployerDashboard: React.FC = () => {
                     name="company"
                     value={formData.company}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.company ? 'border-red-300' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                      formErrors.company ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="e.g. TechCorp Inc."
                   />
-                  {formErrors.company && <p className="mt-1 text-sm text-red-600">{formErrors.company}</p>}
+                  {formErrors.company && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.company}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location *
                   </label>
                   <input
@@ -453,16 +453,16 @@ export const EmployerDashboard: React.FC = () => {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.location ? 'border-red-300' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                      formErrors.location ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                     }`}
                     placeholder="e.g. San Francisco, CA or Remote"
                   />
-                  {formErrors.location && <p className="mt-1 text-sm text-red-600">{formErrors.location}</p>}
+                  {formErrors.location && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.location}</p>}
                 </div>
 
                 <div>
-                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Job Type
                   </label>
                   <select
@@ -470,7 +470,7 @@ export const EmployerDashboard: React.FC = () => {
                     name="type"
                     value={formData.type}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="full-time">Full Time</option>
                     <option value="part-time">Part Time</option>
@@ -481,7 +481,7 @@ export const EmployerDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label htmlFor="salary" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="salary" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Salary Range (Optional)
                 </label>
                 <input
@@ -490,13 +490,13 @@ export const EmployerDashboard: React.FC = () => {
                   name="salary"
                   value={formData.salary}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="e.g. $80,000 - $120,000"
                 />
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Job Description *
                 </label>
                 <textarea
@@ -505,16 +505,16 @@ export const EmployerDashboard: React.FC = () => {
                   rows={4}
                   value={formData.description}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    formErrors.description ? 'border-red-300' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                    formErrors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder="Describe the role, responsibilities, and what you're looking for in a candidate..."
                 />
-                {formErrors.description && <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>}
+                {formErrors.description && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.description}</p>}
               </div>
 
               <div>
-                <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Requirements *
                 </label>
                 <textarea
@@ -523,23 +523,23 @@ export const EmployerDashboard: React.FC = () => {
                   rows={3}
                   value={formData.requirements}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    formErrors.requirements ? 'border-red-300' : 'border-gray-300'
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 ${
+                    formErrors.requirements ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder="List the required skills, experience, and qualifications (comma-separated)"
                 />
-                {formErrors.requirements && <p className="mt-1 text-sm text-red-600">{formErrors.requirements}</p>}
-                <p className="mt-1 text-sm text-gray-500">
+                {formErrors.requirements && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.requirements}</p>}
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Separate each requirement with a comma (e.g. React, TypeScript, 3+ years experience)
                 </p>
               </div>
 
-              <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+              <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={handleCloseJobModal}
                   disabled={submitting}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -564,27 +564,27 @@ export const EmployerDashboard: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deletingJob && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
             <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/50 rounded-full">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
                 Delete Job Posting
               </h3>
-              <p className="text-gray-600 text-center mb-2">
+              <p className="text-gray-600 dark:text-gray-400 text-center mb-2">
                 Are you sure you want to delete this job posting?
               </p>
-              <p className="text-gray-900 font-medium text-center mb-4">
+              <p className="text-gray-900 dark:text-white font-medium text-center mb-4">
                 "{deletingJob.title}"
               </p>
-              <p className="text-sm text-gray-500 text-center mb-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
                 This action cannot be undone. All {deletingJob.applicant_count} applications for this job will also be removed.
               </p>
               <div className="flex space-x-4">
                 <button
                   onClick={handleCloseDeleteModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>

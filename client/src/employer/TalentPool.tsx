@@ -42,7 +42,7 @@ const ProfileModal: React.FC<{
       
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
           {/* Header with gradient background */}
           <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-8">
             <button
@@ -80,62 +80,62 @@ const ProfileModal: React.FC<{
             {/* Bio */}
             {candidate.bio && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h3>
-                <p className="text-gray-700 leading-relaxed">{candidate.bio}</p>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">About</h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{candidate.bio}</p>
               </div>
             )}
 
             {/* Skills */}
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Skills</h3>
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {candidate.skills.length > 0 ? (
                   candidate.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
+                      className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/50 dark:to-indigo-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium border border-blue-100 dark:border-blue-800"
                     >
                       {skill}
                     </span>
                   ))
                 ) : (
-                  <span className="text-gray-400 text-sm">No skills listed</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-sm">No skills listed</span>
                 )}
               </div>
             </div>
 
             {/* Experience & Education */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                 <div className="flex items-center mb-2">
-                  <Briefcase className="h-5 w-5 text-blue-600 mr-2" />
-                  <h3 className="text-sm font-semibold text-gray-700">Experience</h3>
+                  <Briefcase className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Experience</h3>
                 </div>
-                <p className="text-gray-600">{candidate.experience}</p>
+                <p className="text-gray-600 dark:text-gray-400">{candidate.experience}</p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                 <div className="flex items-center mb-2">
-                  <GraduationCap className="h-5 w-5 text-blue-600 mr-2" />
-                  <h3 className="text-sm font-semibold text-gray-700">Education</h3>
+                  <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Education</h3>
                 </div>
-                <p className="text-gray-600">{candidate.education}</p>
+                <p className="text-gray-600 dark:text-gray-400">{candidate.education}</p>
               </div>
             </div>
 
             {/* Contact & Links */}
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact & Links</h3>
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contact & Links</h3>
               <div className="space-y-2">
                 <a
                   href={`mailto:${candidate.email}`}
-                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                  className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                  <Mail className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {candidate.email}
                 </a>
                 {candidate.phone && (
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <Phone className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     {candidate.phone}
                   </div>
                 )}
@@ -144,9 +144,9 @@ const ProfileModal: React.FC<{
                     href={candidate.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
-                    <Linkedin className="h-4 w-4 mr-3 text-gray-400" />
+                    <Linkedin className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     LinkedIn Profile
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -156,9 +156,9 @@ const ProfileModal: React.FC<{
                     href={candidate.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
-                    <Github className="h-4 w-4 mr-3 text-gray-400" />
+                    <Github className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     GitHub Profile
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -168,9 +168,9 @@ const ProfileModal: React.FC<{
                     href={candidate.portfolio}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
-                    <Globe className="h-4 w-4 mr-3 text-gray-400" />
+                    <Globe className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     Portfolio Website
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -180,13 +180,13 @@ const ProfileModal: React.FC<{
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+          <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between">
             <button
               onClick={() => onToggleShortlist(candidate.id)}
               className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
                 candidate.isShortlisted
-                  ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/70'
+                  : 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500'
               }`}
             >
               <Star className={`h-5 w-5 mr-2 ${candidate.isShortlisted ? 'fill-yellow-500' : ''}`} />
@@ -336,11 +336,11 @@ export const TalentPool: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Talent Pool</h1>
-            <p className="text-sm sm:text-base text-gray-600">Discover and connect with top candidates</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Talent Pool</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Discover and connect with top candidates</p>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-xs sm:text-sm text-gray-500">
+            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               {candidates.filter(c => c.isShortlisted).length} shortlisted
             </span>
           </div>
@@ -350,13 +350,13 @@ export const TalentPool: React.FC = () => {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Loading candidates...</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">Loading candidates...</span>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
@@ -364,25 +364,25 @@ export const TalentPool: React.FC = () => {
         {!loading && !error && (
           <>
             {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-4 sm:mb-6 transition-colors">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4 sm:h-5 sm:w-5" />
               <input
                 type="text"
                 placeholder="Search by name, title, or skills..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-4">
               <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
                 <select
                   value={skillFilter}
                   onChange={(e) => setSkillFilter(e.target.value)}
-                  className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="all">All Skills</option>
                   {allSkills.map(skill => (
@@ -394,8 +394,8 @@ export const TalentPool: React.FC = () => {
                 onClick={() => setShowShortlistedOnly(!showShortlistedOnly)}
                 className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center justify-center ${
                   showShortlistedOnly
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 <Star className={`h-4 w-4 mr-1 ${showShortlistedOnly ? 'fill-yellow-500' : ''}`} />
@@ -408,14 +408,14 @@ export const TalentPool: React.FC = () => {
         {/* Candidates Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {filteredCandidates.length === 0 ? (
-            <div className="col-span-1 lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
-              <UserPlus className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mb-4" />
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No candidates found</h3>
-              <p className="text-sm sm:text-base text-gray-600">Try adjusting your search or filters.</p>
+            <div className="col-span-1 lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 sm:p-12 text-center transition-colors">
+              <UserPlus className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">No candidates found</h3>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Try adjusting your search or filters.</p>
             </div>
           ) : (
             filteredCandidates.map(candidate => (
-              <div key={candidate.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={candidate.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all">
                 <div className="p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start space-x-3 sm:space-x-4 min-w-0">
@@ -428,12 +428,12 @@ export const TalentPool: React.FC = () => {
                       <div className="min-w-0">
                         <h3 
                           onClick={() => setSelectedCandidate(candidate)}
-                          className="text-base sm:text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate"
+                          className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer truncate"
                         >
                           {candidate.name}
                         </h3>
-                        <p className="text-sm sm:text-base text-gray-600 truncate">{candidate.title}</p>
-                        <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-1">
+                        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 truncate">{candidate.title}</p>
+                        <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
                           <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                           {candidate.location}
                         </div>
@@ -444,8 +444,8 @@ export const TalentPool: React.FC = () => {
                         onClick={() => toggleShortlist(candidate.id)}
                         className={`p-2 rounded-full transition-colors ${
                           candidate.isShortlisted
-                            ? 'text-yellow-500 bg-yellow-50 hover:bg-yellow-100'
-                            : 'text-gray-400 hover:text-yellow-500 hover:bg-gray-100'
+                            ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 hover:bg-yellow-100 dark:hover:bg-yellow-900/50'
+                            : 'text-gray-400 dark:text-gray-500 hover:text-yellow-500 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                       >
                         {candidate.isShortlisted ? (
@@ -464,24 +464,24 @@ export const TalentPool: React.FC = () => {
                   </div>
 
                   <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                      <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
+                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                       {candidate.experience} experience
                     </div>
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                      <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
+                    <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                       <span className="truncate">{candidate.education}</span>
                     </div>
-                    <div className="flex items-start text-xs sm:text-sm text-gray-600">
-                      <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 mt-0.5 text-gray-400 flex-shrink-0" />
+                    <div className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                       <div className="flex flex-wrap gap-1">
                         {candidate.skills.slice(0, 4).map((skill, index) => (
-                          <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">
+                          <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded text-xs">
                             {skill}
                           </span>
                         ))}
                         {candidate.skills.length > 4 && (
-                          <span className="px-1.5 sm:px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                          <span className="px-1.5 sm:px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs">
                             +{candidate.skills.length - 4}
                           </span>
                         )}
@@ -497,7 +497,7 @@ export const TalentPool: React.FC = () => {
                           href={candidate.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                          className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/70 transition-colors"
                           title="LinkedIn"
                         >
                           <Linkedin className="h-4 w-4" />
@@ -508,7 +508,7 @@ export const TalentPool: React.FC = () => {
                           href={candidate.github}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                          className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                           title="GitHub"
                         >
                           <Github className="h-4 w-4" />
@@ -519,7 +519,7 @@ export const TalentPool: React.FC = () => {
                           href={candidate.portfolio}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                          className="p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/70 transition-colors"
                           title="Portfolio"
                         >
                           <Globe className="h-4 w-4" />
@@ -528,19 +528,19 @@ export const TalentPool: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-3">
                       <div className="flex items-center space-x-2 w-full sm:w-auto">
                         <button 
                           onClick={() => setChatCandidate(candidate)}
-                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center"
+                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center"
                         >
                           <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Contact
                         </button>
                         <button 
                           onClick={() => setSelectedCandidate(candidate)}
-                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                          className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
                         >
                           <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           Profile

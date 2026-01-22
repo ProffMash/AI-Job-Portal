@@ -168,8 +168,8 @@ export const Notifications: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
-            <p className="text-sm sm:text-base text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Notifications</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
             </p>
           </div>
@@ -177,27 +177,27 @@ export const Notifications: React.FC = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
               >
                 <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 Mark all as read
               </button>
             )}
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+            <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
               <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-4 sm:mb-6 transition-colors">
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setFilter('all')}
               className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                 filter === 'all'
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               All
@@ -207,7 +207,7 @@ export const Notifications: React.FC = () => {
               className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center ${
                 filter === 'unread'
                   ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               Unread
@@ -223,22 +223,22 @@ export const Notifications: React.FC = () => {
         </div>
 
         {/* Notifications List */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors">
           {filteredNotifications.length === 0 ? (
             <div className="p-12 text-center">
-              <Bell className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
-              <p className="text-gray-600">
+              <Bell className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No notifications</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 {filter === 'unread' ? 'You\'ve read all your notifications!' : 'You don\'t have any notifications yet.'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
               {filteredNotifications.map(notification => (
                 <div
                   key={notification.id}
-                  className={`flex items-start p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-50/50' : ''
+                  className={`flex items-start p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                    !notification.isRead ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
                   }`}
                   onClick={() => markAsRead(notification.id)}
                 >
@@ -250,7 +250,7 @@ export const Notifications: React.FC = () => {
                         className="h-10 w-10 sm:h-12 sm:w-12 rounded-full"
                       />
                     ) : (
-                      <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 rounded-full flex items-center justify-center">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                         {getIcon(notification.type)}
                       </div>
                     )}
@@ -258,13 +258,13 @@ export const Notifications: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className={`text-sm ${!notification.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
+                        <p className={`text-sm ${!notification.isRead ? 'font-semibold text-gray-900 dark:text-white' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
                           {notification.title}
                         </p>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {notification.description}
                         </p>
-                        <p className="text-xs text-gray-400 mt-2">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                           {formatTime(notification.timestamp)}
                         </p>
                       </div>

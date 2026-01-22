@@ -105,7 +105,7 @@ export const SeekerDashboard: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-600">Loading jobs...</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">Loading jobs...</span>
           </div>
         </div>
       </Layout>
@@ -116,10 +116,10 @@ export const SeekerDashboard: React.FC = () => {
     return (
       <Layout>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
             <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-medium text-red-800 mb-2">Error Loading Jobs</h3>
-            <p className="text-red-600">{error}</p>
+            <h3 className="text-lg font-medium text-red-800 dark:text-red-400 mb-2">Error Loading Jobs</h3>
+            <p className="text-red-600 dark:text-red-300">{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
@@ -137,46 +137,46 @@ export const SeekerDashboard: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Welcome back, {user?.name}!
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Here are your AI-matched job recommendations based on your skills: {user?.skills?.join(', ')}
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Matched Jobs</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{matchedJobs.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Matched Jobs</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{matchedJobs.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                <Briefcase className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Applications</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">{applications.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Applications</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{applications.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Filter className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                <Filter className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Profile Match</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Profile Match</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   {matchedJobs.length > 0 ? Math.round(matchedJobs.reduce((acc, job) => acc + getMatchScore(job), 0) / matchedJobs.length) : 0}%
                 </p>
               </div>
@@ -185,7 +185,7 @@ export const SeekerDashboard: React.FC = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8 transition-colors">
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -195,7 +195,7 @@ export const SeekerDashboard: React.FC = () => {
                   placeholder="Search jobs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -203,7 +203,7 @@ export const SeekerDashboard: React.FC = () => {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="all">All Types</option>
                 <option value="full-time">Full Time</option>
@@ -219,9 +219,9 @@ export const SeekerDashboard: React.FC = () => {
         <div className="space-y-6">
           {filteredJobs.length === 0 ? (
             <div className="text-center py-12">
-              <Briefcase className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
-              <p className="text-gray-600">
+              <Briefcase className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No jobs found</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 {searchTerm || selectedType !== 'all' 
                   ? 'Try adjusting your search criteria'
                   : 'No AI-matched jobs available at the moment'
@@ -232,7 +232,7 @@ export const SeekerDashboard: React.FC = () => {
             filteredJobs.map((job) => (
               <div key={job.id} className="relative">
                 <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-                  <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <div className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
                     {getMatchScore(job)}% match
                   </div>
                 </div>

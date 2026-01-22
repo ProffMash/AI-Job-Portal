@@ -26,7 +26,7 @@ const ProfileModal: React.FC<{
       
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
           {/* Header with gradient background */}
           <div className="relative bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-8">
             <button
@@ -64,70 +64,70 @@ const ProfileModal: React.FC<{
             {/* Bio */}
             {candidate.bio && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">About</h3>
-                <p className="text-gray-700 leading-relaxed">{candidate.bio}</p>
+                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">About</h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{candidate.bio}</p>
               </div>
             )}
 
             {/* Skills */}
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Skills</h3>
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {candidate.skills.length > 0 ? (
                   candidate.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 text-yellow-700 rounded-full text-sm font-medium border border-yellow-100"
+                      className="px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/50 dark:to-orange-900/50 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium border border-yellow-100 dark:border-yellow-800"
                     >
                       {skill}
                     </span>
                   ))
                 ) : (
-                  <span className="text-gray-400 text-sm">No skills listed</span>
+                  <span className="text-gray-400 dark:text-gray-500 text-sm">No skills listed</span>
                 )}
               </div>
             </div>
 
             {/* Experience & Education */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                 <div className="flex items-center mb-2">
-                  <Briefcase className="h-5 w-5 text-yellow-600 mr-2" />
-                  <h3 className="text-sm font-semibold text-gray-700">Experience</h3>
+                  <Briefcase className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Experience</h3>
                 </div>
-                <p className="text-gray-600">{candidate.experience}</p>
+                <p className="text-gray-600 dark:text-gray-400">{candidate.experience}</p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                 <div className="flex items-center mb-2">
-                  <GraduationCap className="h-5 w-5 text-yellow-600 mr-2" />
-                  <h3 className="text-sm font-semibold text-gray-700">Education</h3>
+                  <GraduationCap className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Education</h3>
                 </div>
-                <p className="text-gray-600">{candidate.education}</p>
+                <p className="text-gray-600 dark:text-gray-400">{candidate.education}</p>
               </div>
             </div>
 
             {/* Notes */}
             {candidate.notes && (
-              <div className="mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                <h3 className="text-sm font-semibold text-yellow-700 mb-2">Your Notes</h3>
-                <p className="text-yellow-800">{candidate.notes}</p>
+              <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-xl border border-yellow-100 dark:border-yellow-800">
+                <h3 className="text-sm font-semibold text-yellow-700 dark:text-yellow-300 mb-2">Your Notes</h3>
+                <p className="text-yellow-800 dark:text-yellow-200">{candidate.notes}</p>
               </div>
             )}
 
             {/* Contact & Links */}
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact & Links</h3>
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contact & Links</h3>
               <div className="space-y-2">
                 <a
                   href={`mailto:${candidate.email}`}
-                  className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                  className="flex items-center text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                 >
-                  <Mail className="h-4 w-4 mr-3 text-gray-400" />
+                  <Mail className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                   {candidate.email}
                 </a>
                 {candidate.phone && (
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="h-4 w-4 mr-3 text-gray-400" />
+                  <div className="flex items-center text-gray-600 dark:text-gray-400">
+                    <Phone className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     {candidate.phone}
                   </div>
                 )}
@@ -136,9 +136,9 @@ const ProfileModal: React.FC<{
                     href={candidate.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                   >
-                    <Linkedin className="h-4 w-4 mr-3 text-gray-400" />
+                    <Linkedin className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     LinkedIn Profile
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -148,9 +148,9 @@ const ProfileModal: React.FC<{
                     href={candidate.github}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                   >
-                    <Github className="h-4 w-4 mr-3 text-gray-400" />
+                    <Github className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     GitHub Profile
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -160,9 +160,9 @@ const ProfileModal: React.FC<{
                     href={candidate.portfolio}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-gray-600 hover:text-yellow-600 transition-colors"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors"
                   >
-                    <Globe className="h-4 w-4 mr-3 text-gray-400" />
+                    <Globe className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                     Portfolio Website
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
@@ -172,10 +172,10 @@ const ProfileModal: React.FC<{
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
+          <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between">
             <button
               onClick={handleRemoveClick}
-              className="flex items-center px-4 py-2 rounded-lg font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="flex items-center px-4 py-2 rounded-lg font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
             >
               <Trash2 className="h-5 w-5 mr-2" />
               Remove from Shortlist
@@ -238,7 +238,7 @@ export const SavedCandidates: React.FC = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-yellow-500" />
-            <span className="ml-2 text-gray-600">Loading saved candidates...</span>
+            <span className="ml-2 text-gray-600 dark:text-gray-400">Loading saved candidates...</span>
           </div>
         </div>
       </Layout>
@@ -249,8 +249,8 @@ export const SavedCandidates: React.FC = () => {
     return (
       <Layout>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <p className="text-red-600">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+            <p className="text-red-600 dark:text-red-400">{error}</p>
             <button
               onClick={() => fetchCandidates()}
               className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
@@ -269,36 +269,36 @@ export const SavedCandidates: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Saved Candidates</h1>
-            <p className="text-sm sm:text-base text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Saved Candidates</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               {savedCandidates.length} candidate{savedCandidates.length !== 1 ? 's' : ''} saved
             </p>
           </div>
-          <div className="flex items-center text-yellow-600">
+          <div className="flex items-center text-yellow-600 dark:text-yellow-400">
             <Star className="h-5 w-5 sm:h-6 sm:w-6 mr-2 fill-yellow-500" />
             <span className="text-sm sm:text-base font-medium">{savedCandidates.length} Shortlisted</span>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 mb-4 sm:mb-6 transition-colors">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4 sm:h-5 sm:w-5" />
               <input
                 type="text"
                 placeholder="Search saved candidates..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                className="w-full pl-9 sm:pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
               <select
                 value={skillFilter}
                 onChange={(e) => setSkillFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                className="flex-1 sm:flex-none px-2 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="all">All Skills</option>
                 {allSkills.map(skill => (
@@ -312,10 +312,10 @@ export const SavedCandidates: React.FC = () => {
         {/* Saved Candidates List */}
         <div className="space-y-4">
           {filteredCandidates.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <StarOff className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No saved candidates</h3>
-              <p className="text-gray-600">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center transition-colors">
+              <StarOff className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No saved candidates</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 {searchTerm || skillFilter !== 'all'
                   ? 'No candidates match your search criteria.'
                   : 'Save candidates from the Talent Pool to view them here.'}
@@ -323,7 +323,7 @@ export const SavedCandidates: React.FC = () => {
             </div>
           ) : (
             filteredCandidates.map(candidate => (
-              <div key={candidate.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={candidate.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all">
                 <div className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex items-start space-x-3 sm:space-x-4">
@@ -338,12 +338,12 @@ export const SavedCandidates: React.FC = () => {
                           <div>
                             <h3 
                               onClick={() => setSelectedCandidate(candidate)}
-                              className="text-base sm:text-lg font-semibold text-gray-900 hover:text-yellow-600 cursor-pointer truncate"
+                              className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hover:text-yellow-600 dark:hover:text-yellow-400 cursor-pointer truncate"
                             >
                               {candidate.name}
                             </h3>
-                            <p className="text-sm sm:text-base text-gray-600 truncate">{candidate.title}</p>
-                            <div className="flex items-center text-xs sm:text-sm text-gray-500 mt-1">
+                            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 truncate">{candidate.title}</p>
+                            <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
                               <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                               {candidate.location}
                             </div>
@@ -351,24 +351,24 @@ export const SavedCandidates: React.FC = () => {
                         </div>
 
                         <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
-                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                            <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                             {candidate.experience} experience
                           </div>
-                          <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                            <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-center text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <GraduationCap className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                             <span className="truncate">{candidate.education}</span>
                           </div>
-                          <div className="flex items-start text-xs sm:text-sm text-gray-600">
-                            <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 mt-0.5 text-gray-400 flex-shrink-0" />
+                          <div className="flex items-start text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            <Code className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 mt-0.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                             <div className="flex flex-wrap gap-1">
                               {candidate.skills.slice(0, 4).map((skill, index) => (
-                                <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-yellow-50 text-yellow-700 rounded text-xs">
+                                <span key={index} className="px-1.5 sm:px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 rounded text-xs">
                                   {skill}
                                 </span>
                               ))}
                               {candidate.skills.length > 4 && (
-                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded text-xs">
                                   +{candidate.skills.length - 4}
                                 </span>
                               )}
@@ -395,7 +395,7 @@ export const SavedCandidates: React.FC = () => {
                                 href={candidate.github}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                                 title="GitHub"
                               >
                                 <Github className="h-4 w-4" />
@@ -406,7 +406,7 @@ export const SavedCandidates: React.FC = () => {
                                 href={candidate.portfolio}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-2 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                                className="p-2 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900 transition-colors"
                                 title="Portfolio"
                               >
                                 <Globe className="h-4 w-4" />
@@ -416,8 +416,8 @@ export const SavedCandidates: React.FC = () => {
                         )}
 
                         {candidate.notes && (
-                          <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
-                            <p className="text-sm text-yellow-800">
+                          <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-300">
                               <span className="font-medium">Notes:</span> {candidate.notes}
                             </p>
                           </div>
@@ -428,17 +428,17 @@ export const SavedCandidates: React.FC = () => {
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:space-y-3">
                       <div className="flex items-center gap-2 sm:flex-col sm:items-end">
                         <div className="text-right">
-                          <span className="text-xl sm:text-2xl font-bold text-yellow-600">{candidate.matchScore}%</span>
-                          <p className="text-xs text-gray-500">Match</p>
+                          <span className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">{candidate.matchScore}%</span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Match</p>
                         </div>
-                        <div className="flex items-center text-xs text-gray-400">
+                        <div className="flex items-center text-xs text-gray-400 dark:text-gray-500">
                           <Clock className="h-3 w-3 mr-1" />
                           Saved {getDaysAgo(candidate.savedAt)}
                         </div>
                       </div>
                       <button
                         onClick={() => handleRemove(candidate.id)}
-                        className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        className="p-1.5 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
                         title="Remove from saved"
                       >
                         <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -446,7 +446,7 @@ export const SavedCandidates: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2 sm:space-x-3">
                       <a 
                         href={`mailto:${candidate.email}`}
@@ -457,13 +457,13 @@ export const SavedCandidates: React.FC = () => {
                       </a>
                       <button 
                         onClick={() => setSelectedCandidate(candidate)}
-                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
                       >
                         <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         View Profile
                       </button>
                     </div>
-                    <div className="flex items-center justify-end text-yellow-500">
+                    <div className="flex items-center justify-end text-yellow-500 dark:text-yellow-400">
                       <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-yellow-500" />
                     </div>
                   </div>
