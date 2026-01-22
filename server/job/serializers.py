@@ -273,3 +273,109 @@ class ApplicationStatusSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Invalid status')
         return value
 
+
+from .models import Conversation, Message
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    """Serializer for individual messages"""
+    sender_id = serializers.IntegerField(source='sender.id', read_only=True)
+    sender_name = serializers.CharField(source='sender.name', read_only=True)
+    sender_avatar = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Message
+        fields = ['id', 'sender_id', 'sender_name', 'sender_avatar', 'content', 'is_read', 'created_at']
+        read_only_fields = ['id', 'sender_id', 'sender_name', 'sender_avatar', 'is_read', 'created_at']
+
+    def get_sender_avatar(self, obj):
+        if obj.sender.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.sender.avatar.url)
+            return f"http://localhost:8000{obj.sender.avatar.url}"
+        return None
+
+
+class ConversationSerializer(serializers.ModelSerializer):
+    """Serializer for conversations with participant details"""
+    employer_details = UserSerializer(source='employer', read_only=True)
+    seeker_details = UserSerializer(source='seeker', read_only=True)
+    last_message = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
+    participant = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'employer_details', 'seeker_details', 'participant', 
+                  'last_message', 'unread_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_last_message(self, obj):
+        last_msg = obj.messages.order_by('-created_at').first()
+        if last_msg:
+            return {
+                'content': last_msg.content,
+                'created_at': last_msg.created_at,
+                'sender_id': last_msg.sender.id
+            }
+        return None
+
+    def get_unread_count(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            return obj.messages.filter(is_read=False).exclude(sender=request.user).count()
+        return 0
+
+    def get_participant(self, obj):
+        """Return the other participant's details based on current user"""
+        request = self.context.get('request')
+        if request and request.user:
+            if request.user.id == obj.employer.id:
+                return UserSerializer(obj.seeker, context=self.context).data
+            else:
+                return UserSerializer(obj.employer, context=self.context).data
+        return None
+
+
+class ConversationDetailSerializer(serializers.ModelSerializer):
+    """Serializer for conversation with all messages"""
+    employer_details = UserSerializer(source='employer', read_only=True)
+    seeker_details = UserSerializer(source='seeker', read_only=True)
+    messages = MessageSerializer(many=True, read_only=True)
+    participant = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Conversation
+        fields = ['id', 'employer_details', 'seeker_details', 'participant',
+                  'messages', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_participant(self, obj):
+        """Return the other participant's details based on current user"""
+        request = self.context.get('request')
+        if request and request.user:
+            if request.user.id == obj.employer.id:
+                return UserSerializer(obj.seeker, context=self.context).data
+            else:
+                return UserSerializer(obj.employer, context=self.context).data
+        return None
+
+
+class SendMessageSerializer(serializers.Serializer):
+    """Serializer for sending a new message"""
+    recipient_id = serializers.IntegerField(required=True)
+    content = serializers.CharField(required=True, max_length=5000)
+
+    def validate_content(self, value):
+        if not value.strip():
+            raise serializers.ValidationError('Message cannot be empty')
+        return value.strip()
+
+    def validate_recipient_id(self, value):
+        try:
+            User.objects.get(id=value, is_active=True)
+        except User.DoesNotExist:
+            raise serializers.ValidationError('Recipient not found')
+        return value
+

@@ -9,8 +9,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 
-from .models import User, Job
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, ProfileSerializer, JobSerializer
+from .models import User, Job, Conversation, Message
+from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, ProfileSerializer, JobSerializer, ConversationSerializer, ConversationDetailSerializer, MessageSerializer, SendMessageSerializer
 
 
 class RegisterView(APIView):
@@ -482,3 +482,167 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You do not have permission to delete this application'}, status=status.HTTP_403_FORBIDDEN)
         except Application.DoesNotExist:
             return Response({'error': 'Application not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ConversationViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing conversations and messages"""
+    serializer_class = ConversationSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Return conversations where user is either employer or seeker
+        return Conversation.objects.filter(
+            Q(employer=user) | Q(seeker=user)
+        ).order_by('-updated_at')
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ConversationDetailSerializer
+        return ConversationSerializer
+
+    def retrieve(self, request, pk=None):
+        """Get a conversation with all messages"""
+        try:
+            conversation = self.get_queryset().get(pk=pk)
+            # Mark messages as read
+            conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+            serializer = ConversationDetailSerializer(conversation, context={'request': request})
+            return Response(serializer.data)
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'], url_path='send')
+    def send_message(self, request):
+        """Send a message to a user (creates conversation if needed)"""
+        serializer = SendMessageSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        recipient_id = serializer.validated_data['recipient_id']
+        content = serializer.validated_data['content']
+        sender = request.user
+
+        try:
+            recipient = User.objects.get(id=recipient_id, is_active=True)
+        except User.DoesNotExist:
+            return Response({'error': 'Recipient not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Determine employer and seeker based on roles
+        if sender.role == 'employer' and recipient.role == 'seeker':
+            employer = sender
+            seeker = recipient
+        elif sender.role == 'seeker' and recipient.role == 'employer':
+            employer = recipient
+            seeker = sender
+        else:
+            return Response({'error': 'Messages can only be sent between employers and seekers'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+
+        # Get or create conversation
+        conversation, created = Conversation.objects.get_or_create(
+            employer=employer,
+            seeker=seeker
+        )
+
+        # Create the message
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=sender,
+            content=content
+        )
+
+        # Update conversation timestamp
+        conversation.save()  # This updates updated_at
+
+        # Return the message with conversation info
+        message_data = MessageSerializer(message, context={'request': request}).data
+        return Response({
+            'message': message_data,
+            'conversation_id': conversation.id
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='reply')
+    def reply(self, request, pk=None):
+        """Reply to an existing conversation"""
+        try:
+            conversation = self.get_queryset().get(pk=pk)
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        content = request.data.get('content', '').strip()
+        if not content:
+            return Response({'error': 'Message content is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the message
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            content=content
+        )
+
+        # Update conversation timestamp
+        conversation.save()
+
+        message_data = MessageSerializer(message, context={'request': request}).data
+        return Response(message_data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='mark-read')
+    def mark_read(self, request, pk=None):
+        """Mark all messages in a conversation as read"""
+        try:
+            conversation = self.get_queryset().get(pk=pk)
+            # Only mark messages from the other user as read
+            conversation.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+            return Response({'status': 'Messages marked as read'})
+        except Conversation.DoesNotExist:
+            return Response({'error': 'Conversation not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path='with-user/(?P<user_id>[^/.]+)')
+    def with_user(self, request, user_id=None):
+        """Get conversation with a specific user"""
+        try:
+            other_user = User.objects.get(id=user_id, is_active=True)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+
+        # Determine employer and seeker
+        if user.role == 'employer' and other_user.role == 'seeker':
+            employer = user
+            seeker = other_user
+        elif user.role == 'seeker' and other_user.role == 'employer':
+            employer = other_user
+            seeker = user
+        else:
+            return Response({'error': 'Invalid user roles for conversation'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            conversation = Conversation.objects.get(employer=employer, seeker=seeker)
+            # Mark messages as read
+            conversation.messages.filter(is_read=False).exclude(sender=user).update(is_read=True)
+            serializer = ConversationDetailSerializer(conversation, context={'request': request})
+            return Response(serializer.data)
+        except Conversation.DoesNotExist:
+            # Return empty conversation structure
+            return Response({
+                'id': None,
+                'participant': UserSerializer(other_user, context={'request': request}).data,
+                'messages': [],
+                'created_at': None,
+                'updated_at': None
+            })
+
+    @action(detail=False, methods=['get'], url_path='unread-count')
+    def unread_count(self, request):
+        """Get total unread message count for the user"""
+        user = request.user
+        conversations = Conversation.objects.filter(Q(employer=user) | Q(seeker=user))
+        total_unread = sum(
+            conv.messages.filter(is_read=False).exclude(sender=user).count()
+            for conv in conversations
+        )
+        return Response({'unread_count': total_unread})

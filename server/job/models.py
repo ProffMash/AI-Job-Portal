@@ -142,3 +142,33 @@ class Application(models.Model):
 
     def __str__(self):
         return f"{self.seeker.email} applied to {self.job.title}"
+
+
+class Conversation(models.Model):
+    """Model to store conversations between employers and seekers"""
+    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employer_conversations')
+    seeker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seeker_conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        unique_together = ['employer', 'seeker']  # One conversation per employer-seeker pair
+
+    def __str__(self):
+        return f"Conversation: {self.employer.email} <-> {self.seeker.email}"
+
+
+class Message(models.Model):
+    """Model to store messages in a conversation"""
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message from {self.sender.email} at {self.created_at}"
