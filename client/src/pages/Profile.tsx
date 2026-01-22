@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/authStore';
 import { User as UserType } from '../types';
 import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building, Loader2, AtSign, Calendar } from 'lucide-react';
 import { updateProfile as apiUpdateProfile, uploadAvatar, UpdateProfileData } from '../API/profileApi';
+import { clearSeekerRecommendationsCache, clearApplicantScoresCache } from '../API/aiRecommendationApi';
 
 export const Profile: React.FC = () => {
   const { user, updateProfile } = useAuthStore();
@@ -69,6 +70,10 @@ export const Profile: React.FC = () => {
       updateProfile(updatedUser);
       setSuccessMessage('Profile updated successfully!');
       setIsEditing(false);
+      
+      // Clear AI recommendation caches since profile has changed
+      clearSeekerRecommendationsCache();
+      clearApplicantScoresCache();
       
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);

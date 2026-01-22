@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3, X, MapPin, Phone, Link, Linkedin, Github, GraduationCap, User } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3, X, MapPin, Phone, Link, Linkedin, Github, GraduationCap, User, Sparkles, Brain } from 'lucide-react';
 import { getAllApplications, updateApplicationStatus, deleteApplication, ApplicationResponse } from '../API/applicationApi';
 import { fetchMyJobs, Job } from '../API/jobApi';
+import { getApplicantMatchScores, ApplicantMatchResult } from '../API/aiRecommendationApi';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 export const ManageApplications: React.FC = () => {
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [employerJobs, setEmployerJobs] = useState<Job[]>([]);
+  const [matchScores, setMatchScores] = useState<Map<number, ApplicantMatchResult>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -17,7 +20,7 @@ export const ManageApplications: React.FC = () => {
   const [viewingProfile, setViewingProfile] = useState<ApplicationResponse | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus>('all');
   const [jobFilter, setJobFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'status'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'status' | 'match'>('date');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +33,20 @@ export const ManageApplications: React.FC = () => {
         ]);
         setApplications(appsData);
         setEmployerJobs(jobsData);
+
+        // Fetch AI match scores for all applications
+        if (appsData.length > 0) {
+          setAiLoading(true);
+          try {
+            const scores = await getApplicantMatchScores(appsData);
+            setMatchScores(scores);
+          } catch (aiErr) {
+            console.error('AI matching failed:', aiErr);
+            // Silently fail - will show no scores
+          } finally {
+            setAiLoading(false);
+          }
+        }
       } catch (err) {
         console.error('Failed to fetch applications:', err);
         setError('Failed to load applications. Please try again.');
@@ -82,6 +99,11 @@ export const ManageApplications: React.FC = () => {
       if (sortBy === 'date') {
         return new Date(b.applied_at).getTime() - new Date(a.applied_at).getTime();
       }
+      if (sortBy === 'match') {
+        const scoreA = matchScores.get(a.id)?.matchScore || 0;
+        const scoreB = matchScores.get(b.id)?.matchScore || 0;
+        return scoreB - scoreA;
+      }
       return a.status.localeCompare(b.status);
     });
 
@@ -128,8 +150,26 @@ export const ManageApplications: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Manage Applications</h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Review and manage all applications for your job postings</p>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Manage Applications</h1>
+            {matchScores.size > 0 && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-full">
+                <Sparkles className="h-3 w-3" />
+                AI Matching
+              </div>
+            )}
+          </div>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            {matchScores.size > 0 
+              ? 'AI-powered candidate matching based on skills, experience & job requirements'
+              : 'Review and manage all applications for your job postings'}
+          </p>
+          {aiLoading && (
+            <div className="flex items-center gap-2 mt-2 text-purple-600 dark:text-purple-400 text-sm">
+              <Brain className="h-4 w-4 animate-pulse" />
+              AI is analyzing candidate profiles...
+            </div>
+          )}
         </div>
 
         {/* Stats Cards */}
@@ -223,11 +263,12 @@ export const ManageApplications: React.FC = () => {
                 <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex-shrink-0">Sort:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'date' | 'status')}
+                  onChange={(e) => setSortBy(e.target.value as 'date' | 'status' | 'match')}
                   className="flex-1 sm:flex-none px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="date">Date Applied</option>
                   <option value="status">Status</option>
+                  <option value="match">AI Match Score</option>
                 </select>
               </div>
             </div>
@@ -260,23 +301,91 @@ export const ManageApplications: React.FC = () => {
           ) : (
             filteredApplications.map(application => {
               const job = application.job_details;
+              const matchResult = matchScores.get(application.id);
 
               return (
                 <div key={application.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all">
                   <div className="p-4 sm:p-6">
+                    {/* AI Match Score Banner */}
+                    {matchResult && (
+                      <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${
+                        matchResult.matchScore >= 70 
+                          ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                          : matchResult.matchScore >= 50 
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                            : 'bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <Sparkles className={`h-4 w-4 ${
+                            matchResult.matchScore >= 70 
+                              ? 'text-green-600 dark:text-green-400'
+                              : matchResult.matchScore >= 50 
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                          }`} />
+                          <span className={`text-sm font-medium ${
+                            matchResult.matchScore >= 70 
+                              ? 'text-green-700 dark:text-green-300'
+                              : matchResult.matchScore >= 50 
+                                ? 'text-blue-700 dark:text-blue-300'
+                                : 'text-gray-600 dark:text-gray-400'
+                          }`}>
+                            {matchResult.matchReason}
+                          </span>
+                        </div>
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm font-bold ${
+                          matchResult.matchScore >= 70 
+                            ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300'
+                            : matchResult.matchScore >= 50 
+                              ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300'
+                              : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}>
+                          {matchResult.matchScore}% match
+                        </div>
+                      </div>
+                    )}
+                    {aiLoading && !matchResult && (
+                      <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-600 dark:text-purple-400 animate-pulse" />
+                        <span className="text-sm text-purple-700 dark:text-purple-300">AI analyzing candidate profile...</span>
+                      </div>
+                    )}
+                    
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                       <div className="flex items-start space-x-3 sm:space-x-4">
                         <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-xl flex-shrink-0">
                           {application.seeker_name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer truncate">
-                            {application.seeker_name}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer truncate">
+                              {application.seeker_name}
+                            </h3>
+                            {matchResult && matchResult.matchScore >= 80 && (
+                              <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-medium rounded-full flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-white" /> Top Match
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center text-gray-600 dark:text-gray-400 mt-1">
                             <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />
                             <span className="text-xs sm:text-sm truncate">{application.seeker_email}</span>
                           </div>
+                          {/* Show matching skills if available */}
+                          {matchResult && matchResult.matchingSkills.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {matchResult.matchingSkills.slice(0, 4).map((skill, idx) => (
+                                <span key={idx} className="px-2 py-0.5 bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs rounded-full">
+                                  ✓ {skill}
+                                </span>
+                              ))}
+                              {matchResult.matchingSkills.length > 4 && (
+                                <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                                  +{matchResult.matchingSkills.length - 4} more
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <div className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap gap-1 sm:gap-3 mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             <span className="flex items-center">
                               <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 mr-1 flex-shrink-0" />

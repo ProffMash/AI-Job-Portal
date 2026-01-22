@@ -2,19 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { JobCard } from '../components/JobCard';
 import { useAuthStore } from '../stores/authStore';
-import { Search, Filter, Star, Briefcase, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Filter, Star, Briefcase, Loader2, AlertCircle, Sparkles, Brain } from 'lucide-react';
 import { fetchJobs, Job } from '../API/jobApi';
 import { applyToJob, getMyApplications, ApplicationResponse } from '../API/applicationApi';
+import { getAIJobRecommendations, AIJobRecommendation } from '../API/aiRecommendationApi';
+import { fetchProfile, UserProfile } from '../API/profileApi';
 
 export const SeekerDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<AIJobRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [applyingToJob, setApplyingToJob] = useState<number | string | null>(null);
+  const [useAIRecommendations, setUseAIRecommendations] = useState(true);
 
   // Fetch jobs and applications on mount
   useEffect(() => {
@@ -28,6 +33,21 @@ export const SeekerDashboard: React.FC = () => {
         ]);
         setJobs(jobsData);
         setApplications(applicationsData);
+
+        // Fetch AI recommendations if user is logged in
+        if (user?.id) {
+          setAiLoading(true);
+          try {
+            const profile = await fetchProfile(user.id);
+            const recommendations = await getAIJobRecommendations(profile, jobsData);
+            setAiRecommendations(recommendations);
+          } catch (aiErr) {
+            console.error('AI recommendations failed:', aiErr);
+            // Silently fail - will use basic matching
+          } finally {
+            setAiLoading(false);
+          }
+        }
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to load jobs');
       } finally {
@@ -35,27 +55,40 @@ export const SeekerDashboard: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.id]);
 
-  // Filter jobs based on user skills (AI matching)
-  const getMatchedJobs = () => {
-    if (!user?.skills || user.skills.length === 0) {
-      return jobs; // Return all jobs if no skills
+  // Get jobs to display (AI recommendations or basic matching)
+  const getDisplayJobs = (): { job: Job; matchScore: number; matchReason?: string }[] => {
+    if (useAIRecommendations && aiRecommendations.length > 0) {
+      return aiRecommendations.map(rec => ({
+        job: rec.job,
+        matchScore: rec.matchScore,
+        matchReason: rec.matchReason
+      }));
     }
-    return jobs.filter(job => {
-      // Check if any user skill matches job requirements
-      return job.requirements?.some(req =>
-        user.skills!.some(skill =>
-          skill.toLowerCase().includes(req.toLowerCase()) ||
-          req.toLowerCase().includes(skill.toLowerCase())
-        )
-      );
-    });
+    
+    // Fallback to basic matching
+    return jobs.map(job => ({
+      job,
+      matchScore: getBasicMatchScore(job),
+      matchReason: undefined
+    }));
   };
 
-  const matchedJobs = getMatchedJobs();
+  const getBasicMatchScore = (job: Job) => {
+    if (!user?.skills || !job.requirements || job.requirements.length === 0) return 0;
+    const matches = job.requirements.filter((req: string) =>
+      user.skills!.some(skill =>
+        skill.toLowerCase().includes(req.toLowerCase()) ||
+        req.toLowerCase().includes(skill.toLowerCase())
+      )
+    ).length;
+    return Math.round((matches / job.requirements.length) * 100);
+  };
 
-  const filteredJobs = matchedJobs.filter(job => {
+  const displayJobs = getDisplayJobs();
+
+  const filteredJobs = displayJobs.filter(({ job }) => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -84,20 +117,13 @@ export const SeekerDashboard: React.FC = () => {
     }
   };
 
-  const getMatchScore = (job: Job) => {
-    if (!user?.skills || !job.requirements || job.requirements.length === 0) return 0;
-    const matches = job.requirements.filter((req: string) =>
-      user.skills!.some(skill =>
-        skill.toLowerCase().includes(req.toLowerCase()) ||
-        req.toLowerCase().includes(skill.toLowerCase())
-      )
-    ).length;
-    return Math.round((matches / job.requirements.length) * 100);
-  };
-
   const isApplied = (jobId: number | string) => {
     return applications.some(app => app.job_details.id === jobId);
   };
+
+  const avgMatchScore = filteredJobs.length > 0 
+    ? Math.round(filteredJobs.reduce((acc, { matchScore }) => acc + matchScore, 0) / filteredJobs.length) 
+    : 0;
 
   if (loading) {
     return (
@@ -137,13 +163,61 @@ export const SeekerDashboard: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-0">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome back, {user?.name}!
-          </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Welcome back, {user?.name}!
+            </h1>
+            {aiRecommendations.length > 0 && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-medium rounded-full">
+                <Sparkles className="h-3 w-3" />
+                AI Powered
+              </div>
+            )}
+          </div>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Here are your AI-matched job recommendations based on your skills: {user?.skills?.join(', ')}
+            {aiRecommendations.length > 0 
+              ? 'AI-powered job recommendations based on your complete profile'
+              : `Job recommendations based on your skills: ${user?.skills?.join(', ') || 'Add skills to your profile'}`
+            }
           </p>
+          {aiLoading && (
+            <div className="flex items-center gap-2 mt-2 text-purple-600 dark:text-purple-400 text-sm">
+              <Brain className="h-4 w-4 animate-pulse" />
+              AI is analyzing your profile...
+            </div>
+          )}
         </div>
+
+        {/* AI Toggle */}
+        {aiRecommendations.length > 0 && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4 mb-6 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                  <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">AI Job Matching</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Powered by Hugging Face AI - analyzing your skills, experience & education
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUseAIRecommendations(!useAIRecommendations)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  useAIRecommendations ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    useAIRecommendations ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
@@ -154,7 +228,7 @@ export const SeekerDashboard: React.FC = () => {
               </div>
               <div className="ml-3 sm:ml-4">
                 <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Matched Jobs</p>
-                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{matchedJobs.length}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{displayJobs.length}</p>
               </div>
             </div>
           </div>
@@ -175,9 +249,9 @@ export const SeekerDashboard: React.FC = () => {
                 <Filter className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Profile Match</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">Avg Match</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                  {matchedJobs.length > 0 ? Math.round(matchedJobs.reduce((acc, job) => acc + getMatchScore(job), 0) / matchedJobs.length) : 0}%
+                  {avgMatchScore}%
                 </p>
               </div>
             </div>
@@ -229,13 +303,29 @@ export const SeekerDashboard: React.FC = () => {
               </p>
             </div>
           ) : (
-            filteredJobs.map((job) => (
+            filteredJobs.map(({ job, matchScore, matchReason }) => (
               <div key={job.id} className="relative">
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-                  <div className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
-                    {getMatchScore(job)}% match
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex flex-col items-end gap-1">
+                  <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                    matchScore >= 70 
+                      ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' 
+                      : matchScore >= 50 
+                        ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  }`}>
+                    {useAIRecommendations && aiRecommendations.length > 0 && (
+                      <Sparkles className="h-3 w-3" />
+                    )}
+                    {matchScore}% match
                   </div>
                 </div>
+                {matchReason && useAIRecommendations && (
+                  <div className="absolute top-12 right-3 sm:top-14 sm:right-4 z-10 max-w-[200px]">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+                      {matchReason}
+                    </p>
+                  </div>
+                )}
                 <JobCard 
                   job={job} 
                   onApply={handleApply} 
