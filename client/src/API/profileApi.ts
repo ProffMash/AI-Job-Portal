@@ -1,3 +1,15 @@
+import { API_BASE } from './apiClient';
+// Utility to get the correct avatar URL (handles production and local)
+export function getAvatarUrl(avatarPath?: string): string | undefined {
+  if (!avatarPath) return undefined;
+  if (avatarPath.startsWith('http')) return avatarPath;
+  // Remove trailing slash from API_BASE if present, and remove '/api' if present
+  let baseUrl = API_BASE.replace(/\/$/, '');
+  if (baseUrl.endsWith('/api')) {
+    baseUrl = baseUrl.slice(0, -4);
+  }
+  return `${baseUrl}${avatarPath}`;
+}
 import api, { cachedGet, invalidateCacheFor } from './apiClient';
 
 export interface UserProfile {

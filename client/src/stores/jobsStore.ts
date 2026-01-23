@@ -3,8 +3,6 @@ import { persist } from 'zustand/middleware';
 import { JobsState, Job, Application } from '../types';
 import { fetchSavedJobs, saveJob as apiSaveJob, unsaveJob as apiUnsaveJob } from '../API/savedJobsApi';
 
-// No mock jobs — start with empty list; jobs will be populated from API or user actions
-
 export const useJobsStore = create<JobsState>()(
   persist(
     (set, get) => ({
@@ -38,8 +36,8 @@ export const useJobsStore = create<JobsState>()(
       applyToJob: (jobId, applicationData) => {
         const newApplication: Application = {
           ...applicationData,
-          id: Date.now(), // number, not string
-          appliedAt: new Date().toISOString(), // string, not Date
+          id: Date.now(), 
+          appliedAt: new Date().toISOString(), 
           status: 'pending'
         };
         set(state => ({
