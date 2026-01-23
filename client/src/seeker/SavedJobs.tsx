@@ -1,70 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { Bookmark, BookmarkCheck, MapPin, Building, Clock, DollarSign, Trash2, ExternalLink, Search, Filter } from 'lucide-react';
-import { Job } from '../types';
-
-// Mock saved jobs - in a real app, this would come from a store or API
-const mockSavedJobs: Job[] = [
-  {
-    id: 'saved1',
-    title: 'Senior React Developer',
-    company: 'TechCorp',
-    location: 'San Francisco, CA',
-    description: 'We are looking for an experienced React developer to join our team...',
-    requirements: ['React', 'TypeScript', 'Node.js', 'GraphQL'],
-    salary: '$150,000 - $180,000',
-    type: 'full-time',
-    postedBy: 'emp1',
-    postedAt: new Date('2026-01-15'),
-    applicantCount: 45
-  },
-  {
-    id: 'saved2',
-    title: 'Full Stack Engineer',
-    company: 'StartupX',
-    location: 'Remote',
-    description: 'Join our fast-growing startup and work on cutting-edge technology...',
-    requirements: ['React', 'Python', 'AWS', 'PostgreSQL'],
-    salary: '$120,000 - $160,000',
-    type: 'remote',
-    postedBy: 'emp2',
-    postedAt: new Date('2026-01-17'),
-    applicantCount: 32
-  },
-  {
-    id: 'saved3',
-    title: 'Frontend Developer',
-    company: 'DesignStudio',
-    location: 'New York, NY',
-    description: 'Create beautiful and responsive web applications...',
-    requirements: ['Vue.js', 'CSS', 'JavaScript', 'Figma'],
-    salary: '$100,000 - $130,000',
-    type: 'full-time',
-    postedBy: 'emp3',
-    postedAt: new Date('2026-01-18'),
-    applicantCount: 28
-  },
-  {
-    id: 'saved4',
-    title: 'Backend Developer',
-    company: 'DataFlow Inc',
-    location: 'Seattle, WA',
-    description: 'Build scalable backend services and APIs...',
-    requirements: ['Go', 'Kubernetes', 'Redis', 'MongoDB'],
-    salary: '$140,000 - $170,000',
-    type: 'full-time',
-    postedBy: 'emp4',
-    postedAt: new Date('2026-01-12'),
-    applicantCount: 38
-  }
-];
+import { useJobsStore } from '../stores/jobsStore';
+import { useAuthStore } from '../stores/authStore';
 
 export const SavedJobs: React.FC = () => {
-  const [savedJobs, setSavedJobs] = useState<Job[]>(mockSavedJobs);
+  const jobsStore = useJobsStore();
+  const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  const filteredJobs = savedJobs.filter(job => {
+  // Only show jobs that are starred by this user
+  const savedJobs = user && jobsStore.starredJobs[String(user.id)]
+    ? jobsStore.jobs.filter((job: import('../types').Job) => jobsStore.starredJobs[String(user.id)].has(String(job.id)))
+    : [];
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        await jobsStore.syncSavedJobs(String(user.id));
+      } catch (err) {
+        console.error('Failed to sync saved jobs', err);
+      }
+    })();
+  }, [user?.id]);
+
+  const filteredJobs = savedJobs.filter((job: import('../types').Job) => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -73,7 +35,7 @@ export const SavedJobs: React.FC = () => {
   });
 
   const handleRemoveJob = (jobId: string) => {
-    setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+    if (user) jobsStore.unstarJob(jobId, String(user.id));
   };
 
   const getDaysAgo = (date: Date) => {

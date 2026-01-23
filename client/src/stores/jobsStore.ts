@@ -1,81 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { JobsState, Job, Application } from '../types';
+import { fetchSavedJobs, saveJob as apiSaveJob, unsaveJob as apiUnsaveJob } from '../API/savedJobsApi';
 
-// Mock jobs data
-const mockJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Senior React Developer',
-    company: 'TechCorp Inc.',
-    location: 'San Francisco, CA',
-    description: 'We are looking for a Senior React Developer to join our dynamic team. You will be responsible for developing user interface components and implementing them following well-known React.js workflows.',
-    requirements: ['React', 'TypeScript', 'Node.js', '5+ years experience'],
-    salary: '$120,000 - $150,000',
-    type: 'full-time',
-    postedBy: '2',
-    postedAt: new Date('2024-01-15'),
-    applicantCount: 12
-  },
-  {
-    id: '2',
-    title: 'Full Stack Python Developer',
-    company: 'DataFlow Solutions',
-    location: 'New York, NY',
-    description: 'Join our team as a Full Stack Python Developer. You will work on cutting-edge data processing applications and web services.',
-    requirements: ['Python', 'Django', 'PostgreSQL', 'React', '3+ years experience'],
-    salary: '$100,000 - $130,000',
-    type: 'full-time',
-    postedBy: '2',
-    postedAt: new Date('2024-01-10'),
-    applicantCount: 8
-  },
-  {
-    id: '3',
-    title: 'DevOps Engineer',
-    company: 'CloudTech Systems',
-    location: 'Austin, TX',
-    description: 'We need a DevOps Engineer to help us scale our cloud infrastructure and improve our deployment processes.',
-    requirements: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', '4+ years experience'],
-    salary: '$110,000 - $140,000',
-    type: 'full-time',
-    postedBy: '2',
-    postedAt: new Date('2024-01-12'),
-    applicantCount: 15
-  },
-  {
-    id: '4',
-    title: 'Java Backend Developer',
-    company: 'Enterprise Solutions Ltd.',
-    location: 'Chicago, IL',
-    description: 'Looking for a Java Backend Developer to work on enterprise-level applications and microservices architecture.',
-    requirements: ['Java', 'Spring Boot', 'Microservices', 'AWS', '3+ years experience'],
-    salary: '$95,000 - $125,000',
-    type: 'full-time',
-    postedBy: '2',
-    postedAt: new Date('2024-01-08'),
-    applicantCount: 6
-  },
-  {
-    id: '5',
-    title: 'Frontend React Developer',
-    company: 'StartupXYZ',
-    location: 'Remote',
-    description: 'Remote opportunity for a Frontend React Developer to build modern web applications for our growing startup.',
-    requirements: ['React', 'TypeScript', 'Tailwind CSS', '2+ years experience'],
-    salary: '$80,000 - $100,000',
-    type: 'remote',
-    postedBy: '2',
-    postedAt: new Date('2024-01-14'),
-    applicantCount: 20
-  }
-];
+// No mock jobs — start with empty list; jobs will be populated from API or user actions
 
 export const useJobsStore = create<JobsState>()(
   persist(
     (set, get) => ({
-      jobs: mockJobs,
+      jobs: [],
       applications: [],
+      starredJobs: {},
       addJob: (jobData) => {
         const newJob: Job = {
           ...jobData,
@@ -97,14 +32,14 @@ export const useJobsStore = create<JobsState>()(
       deleteJob: (jobId) => {
         set(state => ({
           jobs: state.jobs.filter(job => job.id !== jobId),
-          applications: state.applications.filter(app => app.jobId !== jobId)
+          applications: state.applications.filter(app => String(app.jobId) !== String(jobId))
         }));
       },
       applyToJob: (jobId, applicationData) => {
         const newApplication: Application = {
           ...applicationData,
-          id: Date.now().toString(),
-          appliedAt: new Date(),
+          id: Date.now(), // number, not string
+          appliedAt: new Date().toISOString(), // string, not Date
           status: 'pending'
         };
         set(state => ({
@@ -147,8 +82,108 @@ export const useJobsStore = create<JobsState>()(
         const { applications, jobs } = get();
         const employerJobs = jobs.filter(job => job.postedBy === employerId);
         return applications.filter(app =>
-          employerJobs.some(job => job.id === app.jobId)
+          employerJobs.some(job => String(job.id) === String(app.jobId))
         );
+      },
+      // Per-user starring (optimistic local update + backend sync)
+      starJob: (jobOrId: string | Job, userId: string) => {
+        set(state => {
+          const id = typeof jobOrId === 'string' ? jobOrId : jobOrId.id;
+          // Add job to jobs list if not present
+          let jobs = state.jobs;
+          if (!jobs.some(j => String(j.id) === String(id)) && typeof jobOrId !== 'string') {
+            const incoming: any = jobOrId;
+            const newJob: Job = {
+              id: String(incoming.id),
+              title: incoming.title || incoming.job_title || '',
+              company: incoming.company || '',
+              location: incoming.location || '',
+              description: incoming.description || '',
+              requirements: incoming.requirements || incoming.skills || [],
+              salary: incoming.salary,
+              type: incoming.type || 'full-time',
+              postedBy: incoming.posted_by ? String(incoming.posted_by) : (incoming.postedBy || ''),
+              postedAt: incoming.posted_at ? new Date(incoming.posted_at) : (incoming.postedAt ? new Date(incoming.postedAt) : new Date()),
+              applicantCount: incoming.applicant_count ?? 0
+            };
+            jobs = [...jobs, newJob];
+          }
+          // Add to user's starred set
+          const starredJobs = { ...state.starredJobs };
+          if (!starredJobs[userId]) starredJobs[userId] = new Set();
+          starredJobs[userId] = new Set(starredJobs[userId]);
+          starredJobs[userId].add(String(id));
+          return { jobs, starredJobs };
+        });
+
+        // Fire-and-forget API call to persist on server
+        (async () => {
+          try {
+            await apiSaveJob(typeof jobOrId === 'string' ? jobOrId : jobOrId.id);
+          } catch (err) {
+            console.error('Failed to save job on server', err);
+          }
+        })();
+      },
+
+      unstarJob: (jobOrId: string | Job, userId: string) => {
+        set(state => {
+          const id = typeof jobOrId === 'string' ? jobOrId : jobOrId.id;
+          const starredJobs = { ...state.starredJobs };
+          if (starredJobs[userId]) {
+            starredJobs[userId] = new Set(starredJobs[userId]);
+            starredJobs[userId].delete(String(id));
+          }
+          return { starredJobs };
+        });
+
+        (async () => {
+          try {
+            await apiUnsaveJob(typeof jobOrId === 'string' ? jobOrId : jobOrId.id);
+          } catch (err) {
+            console.error('Failed to unsave job on server', err);
+          }
+        })();
+      },
+
+      // Sync saved jobs from backend for a user
+      syncSavedJobs: async (userId: string) => {
+        try {
+          const saved = await fetchSavedJobs();
+          set(state => {
+            const starredJobs = { ...state.starredJobs };
+            starredJobs[userId] = new Set(saved.map(s => String(s.job_details.id)));
+
+            // Add any missing jobs into the jobs list
+            const jobsMap: Record<string, Job> = {};
+            state.jobs.forEach(j => { jobsMap[String(j.id)] = j; });
+            const incomingJobs: Job[] = [];
+            saved.forEach(s => {
+              const jd: any = s.job_details;
+              const idStr = String(jd.id);
+              if (!jobsMap[idStr]) {
+                const newJob: Job = {
+                  id: idStr,
+                  title: jd.title || '',
+                  company: jd.company || '',
+                  location: jd.location || '',
+                  description: jd.description || '',
+                  requirements: jd.requirements || [],
+                  salary: jd.salary,
+                  type: jd.type || 'full-time',
+                  postedBy: jd.posted_by ? String(jd.posted_by) : (jd.postedBy || ''),
+                  postedAt: jd.posted_at ? new Date(jd.posted_at) : (jd.postedAt ? new Date(jd.postedAt) : new Date()),
+                  applicantCount: jd.applicant_count ?? 0
+                };
+                incomingJobs.push(newJob);
+              }
+            });
+
+            return { jobs: [...state.jobs, ...incomingJobs], starredJobs };
+          });
+        } catch (err) {
+          console.error('Failed to sync saved jobs', err);
+        }
       }
     }),
     {
@@ -174,10 +209,55 @@ export const useJobsStore = create<JobsState>()(
             }));
           }
           
+          // Rebuild starredJobs Sets saved as arrays in localStorage
+          if (data.state?.starredJobs) {
+            const rebuilt: Record<string, Set<string>> = {};
+            Object.entries(data.state.starredJobs).forEach(([userId, value]: [string, any]) => {
+              // value may be an array of ids or an object; handle array case
+              if (Array.isArray(value)) {
+                rebuilt[userId] = new Set(value.map(String));
+              } else if (value && typeof value === 'object') {
+                // If value was serialized as an object with numeric keys, convert its values
+                const arr = Object.values(value).map(String);
+                rebuilt[userId] = new Set(arr);
+              } else {
+                rebuilt[userId] = new Set();
+              }
+            });
+            data.state.starredJobs = rebuilt;
+          }
+          
           return data;
         },
         setItem: (name, value) => {
-          localStorage.setItem(name, JSON.stringify(value));
+          // Convert starredJobs Sets to arrays for JSON serialization
+          try {
+            const copy: any = { ...value };
+            if (copy?.state && copy.state.starredJobs) {
+              const serializable: Record<string, string[]> = {};
+              Object.entries(copy.state.starredJobs).forEach(([userId, setLike]: [string, any]) => {
+                try {
+                  // If it's a Set, Array.from it; if array, keep; otherwise coerce to array
+                  if (setLike instanceof Set) {
+                    serializable[userId] = Array.from(setLike);
+                  } else if (Array.isArray(setLike)) {
+                    serializable[userId] = setLike.map(String);
+                  } else if (setLike && typeof setLike === 'object') {
+                    serializable[userId] = Object.values(setLike).map(String);
+                  } else {
+                    serializable[userId] = [];
+                  }
+                } catch (e) {
+                  serializable[userId] = [];
+                }
+              });
+              copy.state = { ...copy.state, starredJobs: serializable };
+            }
+            localStorage.setItem(name, JSON.stringify(copy));
+          } catch (e) {
+            // Fallback: best-effort stringify
+            localStorage.setItem(name, JSON.stringify(value));
+          }
         },
         removeItem: (name) => {
           localStorage.removeItem(name);

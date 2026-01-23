@@ -9,6 +9,7 @@ export interface Job {
   requirements: string[];
   salary?: string;
   type: 'full-time' | 'part-time' | 'contract' | 'remote';
+  starred?: boolean;
   posted_by: number;
   posted_by_details?: {
     id: number;

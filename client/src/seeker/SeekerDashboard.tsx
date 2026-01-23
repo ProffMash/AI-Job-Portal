@@ -6,10 +6,12 @@ import { Search, Filter, Star, Briefcase, Loader2, AlertCircle, Sparkles, Brain 
 import { fetchJobs, Job } from '../API/jobApi';
 import { applyToJob, getMyApplications, ApplicationResponse } from '../API/applicationApi';
 import { getAIJobRecommendations, AIJobRecommendation } from '../API/aiRecommendationApi';
-import { fetchProfile, UserProfile } from '../API/profileApi';
+import { fetchProfile } from '../API/profileApi';
+import { useJobsStore } from '../stores/jobsStore';
 
 export const SeekerDashboard: React.FC = () => {
   const { user } = useAuthStore();
+  const jobsStore = useJobsStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
   const [aiRecommendations, setAiRecommendations] = useState<AIJobRecommendation[]>([]);
@@ -75,6 +77,8 @@ export const SeekerDashboard: React.FC = () => {
     }));
   };
 
+    // Local alias for Job that may include the optional `starred` flag
+
   const getBasicMatchScore = (job: Job) => {
     if (!user?.skills || !job.requirements || job.requirements.length === 0) return 0;
     const matches = job.requirements.filter((req: string) =>
@@ -120,6 +124,9 @@ export const SeekerDashboard: React.FC = () => {
   const isApplied = (jobId: number | string) => {
     return applications.some(app => app.job_details.id === jobId);
   };
+
+  const handleStar = (jobObj: Job) => user && jobsStore.starJob(jobObj, String(user.id));
+  const handleUnstar = (jobId: string) => user && jobsStore.unstarJob(jobId, String(user.id));
 
   const avgMatchScore = filteredJobs.length > 0 
     ? Math.round(filteredJobs.reduce((acc, { matchScore }) => acc + matchScore, 0) / filteredJobs.length) 
@@ -318,6 +325,18 @@ export const SeekerDashboard: React.FC = () => {
                     )}
                     {matchScore}% match
                   </div>
+                  {(() => {
+                    const isStarred = user && jobsStore.starredJobs[String(user.id)] && jobsStore.starredJobs[String(user.id)].has(String(job.id));
+                    return (
+                      <button
+                        onClick={() => isStarred ? handleUnstar(String(job.id)) : handleStar(job)}
+                        className={`mt-2 p-2 rounded-full border transition-colors ${isStarred ? 'bg-yellow-100 border-yellow-400 text-yellow-600' : 'bg-gray-100 border-gray-300 text-gray-400 hover:text-yellow-500 hover:border-yellow-400'}`}
+                        title={isStarred ? 'Unstar' : 'Star'}
+                      >
+                        <Star className={`h-5 w-5 ${isStarred ? 'fill-yellow-400' : ''}`} />
+                      </button>
+                    );
+                  })()}
                 </div>
                 {matchReason && useAIRecommendations && (
                   <div className="absolute top-12 right-3 sm:top-14 sm:right-4 z-10 max-w-[200px]">

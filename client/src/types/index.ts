@@ -35,6 +35,7 @@ export interface Job {
   postedBy: string;
   postedAt: Date;
   applicantCount: number;
+  starred?: boolean; // Added for starring jobs
 }
 
 export interface Application {
@@ -61,10 +62,15 @@ export interface AuthState {
 export interface JobsState {
   jobs: Job[];
   applications: Application[];
+  // Map of userId to Set of starred job ids
+  starredJobs: { [userId: string]: Set<string> };
   addJob: (job: Omit<Job, 'id' | 'postedAt' | 'applicantCount'>) => void;
   updateJob: (jobId: string, updates: Partial<Omit<Job, 'id' | 'postedAt' | 'applicantCount'>>) => void;
   deleteJob: (jobId: string) => void;
   applyToJob: (jobId: string, application: Omit<Application, 'id' | 'appliedAt'>) => void;
   getJobsForSeeker: (seekerSkills: string[]) => Job[];
   getApplicationsForEmployer: (employerId: string) => Application[];
+  starJob: (jobIdOrJob: string | any, userId: string) => void;
+  unstarJob: (jobIdOrJob: string | any, userId: string) => void;
+  syncSavedJobs: (userId: string) => Promise<void>;
 }
