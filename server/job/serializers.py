@@ -293,7 +293,7 @@ class MessageSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.sender.avatar.url)
-            return f"http://localhost:8000{obj.sender.avatar.url}"
+            return f"https://ai-job-portal-r30p.onrender.com{obj.sender.avatar.url}"
         return None
 
 
