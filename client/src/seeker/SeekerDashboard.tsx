@@ -312,32 +312,7 @@ export const SeekerDashboard: React.FC = () => {
           ) : (
             filteredJobs.map(({ job, matchScore, matchReason }) => (
               <div key={job.id} className="relative">
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex flex-col items-end gap-1">
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-                    matchScore >= 70 
-                      ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300' 
-                      : matchScore >= 50 
-                        ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                  }`}>
-                    {useAIRecommendations && aiRecommendations.length > 0 && (
-                      <Sparkles className="h-3 w-3" />
-                    )}
-                    {matchScore}% match
-                  </div>
-                  {(() => {
-                    const isStarred = user && jobsStore.starredJobs[String(user.id)] && jobsStore.starredJobs[String(user.id)].has(String(job.id));
-                    return (
-                      <button
-                        onClick={() => isStarred ? handleUnstar(String(job.id)) : handleStar(job)}
-                        className={`mt-2 p-2 rounded-full border transition-colors ${isStarred ? 'bg-yellow-100 border-yellow-400 text-yellow-600' : 'bg-gray-100 border-gray-300 text-gray-400 hover:text-yellow-500 hover:border-yellow-400'}`}
-                        title={isStarred ? 'Unstar' : 'Star'}
-                      >
-                        <Star className={`h-5 w-5 ${isStarred ? 'fill-yellow-400' : ''}`} />
-                      </button>
-                    );
-                  })()}
-                </div>
+                {/* Removed match badge overlay, now handled in JobCard */}
                 {matchReason && useAIRecommendations && (
                   <div className="absolute top-12 right-3 sm:top-14 sm:right-4 z-10 max-w-[200px]">
                     <p className="text-xs text-gray-500 dark:text-gray-400 bg-white/90 dark:bg-gray-800/90 px-2 py-1 rounded shadow-sm border border-gray-200 dark:border-gray-700">
@@ -350,6 +325,13 @@ export const SeekerDashboard: React.FC = () => {
                   onApply={handleApply} 
                   isApplied={isApplied(job.id)}
                   isApplying={applyingToJob === job.id}
+                  isStarred={!!(user && jobsStore.starredJobs[String(user.id)] && jobsStore.starredJobs[String(user.id)].has(String(job.id)))}
+                  onStar={() => handleStar(job)}
+                  onUnstar={() => handleUnstar(String(job.id))}
+                  matchScore={matchScore}
+                  matchReason={matchReason}
+                  useAIRecommendations={useAIRecommendations}
+                  aiRecommendations={aiRecommendations}
                 />
               </div>
             ))

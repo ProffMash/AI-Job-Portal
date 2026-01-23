@@ -23,9 +23,16 @@ interface JobCardProps {
   showApplicants?: boolean;
   isApplied?: boolean;
   isApplying?: boolean;
+  isStarred?: boolean;
+  onStar?: () => void;
+  onUnstar?: () => void;
+  matchScore?: number;
+  matchReason?: string;
+  useAIRecommendations?: boolean;
+  aiRecommendations?: any[];
 }
 
-export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants = false, isApplied = false, isApplying = false }) => {
+export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants = false, isApplied = false, isApplying = false, isStarred = false, onStar, onUnstar, matchScore, useAIRecommendations, aiRecommendations }) => {
   const { user } = useAuthStore();
 
   const formatDate = (date: Date | string) => {
@@ -47,7 +54,23 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{job.title}</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{job.title}</h3>
+            {typeof matchScore === 'number' && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
+                matchScore >= 70
+                  ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300'
+                  : matchScore >= 50
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}>
+                {useAIRecommendations && aiRecommendations && aiRecommendations.length > 0 && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M6.343 17.657l-1.414 1.414M17.657 17.657l-1.414-1.414M6.343 6.343L4.929 4.929" /></svg>
+                )}
+                {matchScore}% match
+              </span>
+            )}
+          </div>
           <p className="text-lg text-blue-600 dark:text-blue-400 font-medium mb-2">{job.company}</p>
           <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4">
             <div className="flex items-center">
@@ -67,6 +90,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
               </div>
             )}
           </div>
+          {/* Match reason removed as requested */}
         </div>
         <div className="flex flex-col items-end space-y-2">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -103,7 +127,19 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
       </div>
 
       {onApply && user?.role === 'seeker' && (
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-2">
+          {(typeof isStarred !== 'undefined' && (onStar || onUnstar)) && (
+            <button
+              onClick={isStarred ? onUnstar : onStar}
+              className={`p-2 rounded-full border transition-colors ${isStarred ? 'bg-yellow-100 border-yellow-400 text-yellow-600' : 'bg-gray-100 border-gray-300 text-gray-400 hover:text-yellow-500 hover:border-yellow-400'}`}
+              title={isStarred ? 'Unstar' : 'Star'}
+              style={{ marginRight: 8 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isStarred ? 'fill-yellow-400' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l2.036 6.29a1 1 0 00.95.69h6.6c.969 0 1.371 1.24.588 1.81l-5.347 3.89a1 1 0 00-.364 1.118l2.036 6.29c.3.921-.755 1.688-1.54 1.118l-5.347-3.89a1 1 0 00-1.176 0l-5.347 3.89c-.784.57-1.838-.197-1.54-1.118l2.036-6.29a1 1 0 00-.364-1.118l-5.347-3.89c-.783-.57-.38-1.81.588-1.81h6.6a1 1 0 00.95-.69l2.036-6.29z" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => onApply(job.id)}
             disabled={isApplied || isApplying}
