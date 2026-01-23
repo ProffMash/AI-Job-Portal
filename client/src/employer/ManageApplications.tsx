@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
-import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Download, Star, Loader2, AlertCircle, Trash2, Edit3, X, MapPin, Phone, Link, Linkedin, Github, GraduationCap, User, Sparkles, Brain } from 'lucide-react';
+import { Briefcase, Clock, CheckCircle, XCircle, Eye, Calendar, Filter, Mail, Star, Loader2, AlertCircle, Trash2, Edit3, X, MapPin, Phone, Link, Linkedin, Github, GraduationCap, User, Sparkles, Brain } from 'lucide-react';
 import { getAllApplications, updateApplicationStatus, deleteApplication, ApplicationResponse } from '../API/applicationApi';
 import { fetchMyJobs, Job } from '../API/jobApi';
 import { getApplicantMatchScores, ApplicantMatchResult } from '../API/aiRecommendationApi';
+import { ChatModal } from '../components/ChatModal';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
 export const ManageApplications: React.FC = () => {
   const [applications, setApplications] = useState<ApplicationResponse[]>([]);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatCandidate, setChatCandidate] = useState<ApplicationResponse | null>(null);
   const [employerJobs, setEmployerJobs] = useState<Job[]>([]);
   const [matchScores, setMatchScores] = useState<Map<number, ApplicantMatchResult>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -451,14 +454,18 @@ export const ManageApplications: React.FC = () => {
                           <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                           View Profile
                         </button>
-                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center">
-                          <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          <span className="hidden sm:inline">Download </span>Resume
-                        </button>
-                        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center">
-                          <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                          Contact
-                        </button>
+                        {viewingProfile === null && (
+                          <button
+                            className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
+                            onClick={() => {
+                              setChatCandidate(application);
+                              setChatOpen(true);
+                            }}
+                          >
+                            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Contact Candidate
+                          </button>
+                        )}
                       </div>
                       <div className="flex items-center justify-end space-x-2">
                         {(application.status === 'pending' || application.status === 'reviewed') && (
@@ -691,16 +698,20 @@ export const ManageApplications: React.FC = () => {
               >
                 Close
               </button>
-              <a
-                href={`mailto:${viewingProfile.seeker_email}`}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Contact Candidate
-              </a>
             </div>
           </div>
         </div>
+      )}
+      {/* Chat Modal */}
+      {chatCandidate && (
+        <ChatModal
+          isOpen={chatOpen}
+          onClose={() => { setChatOpen(false); setChatCandidate(null); }}
+          recipientId={chatCandidate.seeker_details.id}
+          recipientName={chatCandidate.seeker_name}
+          recipientAvatar={chatCandidate.seeker_details.avatar || ''}
+          recipientTitle=""
+        />
       )}
     </Layout>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { Star, StarOff, MapPin, Briefcase, Mail, ExternalLink, Search, Filter, Trash2, GraduationCap, Code, Clock, X, Linkedin, Github, Globe, Phone, Loader2 } from 'lucide-react';
 import { useSavedCandidatesStore, SavedCandidate } from '../stores/savedCandidatesStore';
+import { ChatModal } from '../components/ChatModal';
 
 // Profile Modal Component
 const ProfileModal: React.FC<{
@@ -180,13 +181,6 @@ const ProfileModal: React.FC<{
               <Trash2 className="h-5 w-5 mr-2" />
               Remove from Shortlist
             </button>
-            <a
-              href={`mailto:${candidate.email}`}
-              className="flex items-center px-6 py-2 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-colors"
-            >
-              <Mail className="h-5 w-5 mr-2" />
-              Send Message
-            </a>
           </div>
         </div>
       </div>
@@ -197,6 +191,8 @@ const ProfileModal: React.FC<{
 export const SavedCandidates: React.FC = () => {
   const { savedCandidates, removeCandidate, fetchCandidates, isLoading, error } = useSavedCandidatesStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatCandidate, setChatCandidate] = useState<SavedCandidate | null>(null);
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [selectedCandidate, setSelectedCandidate] = useState<SavedCandidate | null>(null);
 
@@ -448,13 +444,16 @@ export const SavedCandidates: React.FC = () => {
 
                   <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-2 sm:space-x-3">
-                      <a 
-                        href={`mailto:${candidate.email}`}
+                      <button
                         className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-yellow-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center"
+                        onClick={() => {
+                          setChatCandidate(candidate);
+                          setChatOpen(true);
+                        }}
                       >
                         <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                         Contact
-                      </a>
+                      </button>
                       <button 
                         onClick={() => setSelectedCandidate(candidate)}
                         className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center"
@@ -480,6 +479,17 @@ export const SavedCandidates: React.FC = () => {
           candidate={selectedCandidate}
           onClose={() => setSelectedCandidate(null)}
           onRemove={handleRemove}
+        />
+      )}
+      {/* Chat Modal */}
+      {chatCandidate && (
+        <ChatModal
+          isOpen={chatOpen}
+          onClose={() => { setChatOpen(false); setChatCandidate(null); }}
+          recipientId={chatCandidate.id}
+          recipientName={chatCandidate.name}
+          recipientAvatar={chatCandidate.avatar || ''}
+          recipientTitle={chatCandidate.title || ''}
         />
       )}
     </Layout>
