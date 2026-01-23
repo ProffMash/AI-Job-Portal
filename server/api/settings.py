@@ -200,7 +200,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Public site URL used for building absolute links when request is not available
 # Set via environment in production, e.g. SITE_URL=https://your-app.onrender.com
-SITE_URL = os.environ.get('https://ai-job-portal-r30p.onrender.com', 'http://localhost:8000')
+SITE_URL = os.environ.get('SITE_URL')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
