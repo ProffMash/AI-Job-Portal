@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { Home, Briefcase, User, LogOut, Users, MessageCircle, Bell, Bookmark, FileText, Star, Menu, X } from 'lucide-react';
+import { Home, Briefcase, User, LogOut, Users, MessageCircle, Bookmark, FileText, Star, Menu, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -37,14 +37,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       { name: 'Messages', href: '/seeker/messages', icon: MessageCircle },
       { name: 'Applications', href: '/seeker/applications', icon: Briefcase },
       { name: 'Saved Jobs', href: '/seeker/saved', icon: Bookmark },
-      { name: 'Notifications', href: '/seeker/notifications', icon: Bell },
     ] : []),
     ...(isEmployer ? [
       { name: 'Applications', href: '/employer/applications', icon: FileText },
       { name: 'Talent Pool', href: '/employer/talent', icon: Users },
       { name: 'Messages', href: '/employer/messages', icon: MessageCircle },
       { name: 'Saved Candidates', href: '/employer/saved', icon: Star },
-      { name: 'Notifications', href: '/employer/notifications', icon: Bell },
     ] : []),
     { name: 'Profile', href: '/profile', icon: User },
   ];
