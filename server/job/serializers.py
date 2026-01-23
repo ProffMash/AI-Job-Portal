@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.conf import settings
 from .models import User
 
 
@@ -80,7 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
-            return f"http://localhost:8000{obj.avatar.url}"
+            return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
         return None
 
 
@@ -109,7 +110,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
-            return f"http://localhost:8000{obj.avatar.url}"
+            return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
         return None
 
     def validate_skills(self, value):
@@ -293,7 +294,7 @@ class MessageSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             if request:
                 return request.build_absolute_uri(obj.sender.avatar.url)
-            return f"https://ai-job-portal-r30p.onrender.com{obj.sender.avatar.url}"
+            return f"{settings.SITE_URL.rstrip('/')}{obj.sender.avatar.url}"
         return None
 
 
