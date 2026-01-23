@@ -9,8 +9,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 
-from .models import User, Job, Conversation, Message
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer, ProfileSerializer, JobSerializer, ConversationSerializer, ConversationDetailSerializer, MessageSerializer, SendMessageSerializer
+from .models import User, Job, Conversation, Message, SavedJob
+from .serializers import (
+    RegisterSerializer, LoginSerializer, UserSerializer, ProfileSerializer,
+    JobSerializer, ConversationSerializer, ConversationDetailSerializer,
+    MessageSerializer, SendMessageSerializer, SavedJobSerializer
+)
 
 
 class RegisterView(APIView):
@@ -646,3 +650,38 @@ class ConversationViewSet(viewsets.ModelViewSet):
             for conv in conversations
         )
         return Response({'unread_count': total_unread})
+
+
+class SavedJobViewSet(viewsets.ViewSet):
+    """ViewSet to manage seeker's saved jobs"""
+    authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        return [IsAuthenticated()]
+
+    def list(self, request):
+        user = request.user
+        saved = SavedJob.objects.filter(seeker=user)
+        serializer = SavedJobSerializer(saved, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = SavedJobSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, pk=None):
+        # Treat pk as the job id to remove a saved job by job id
+        job_id = pk
+        try:
+            saved = SavedJob.objects.get(seeker=request.user, job_id=job_id)
+            saved.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except SavedJob.DoesNotExist:
+            return Response({'error': 'Saved job not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], url_path=r'check/(?P<job_id>[^/.]+)')
+    def check_saved(self, request, job_id=None):
+        is_saved = SavedJob.objects.filter(seeker=request.user, job_id=job_id).exists()
+        return Response({'is_saved': is_saved})

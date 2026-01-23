@@ -172,3 +172,17 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {self.sender.email} at {self.created_at}"
+
+
+# Model for seekers saving jobs
+class SavedJob(models.Model):
+    seeker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_jobs')
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='saved_by_seekers')
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-saved_at']
+        unique_together = ['seeker', 'job']
+
+    def __str__(self):
+        return f"{self.seeker.email} saved {self.job.title}"

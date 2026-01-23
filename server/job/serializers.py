@@ -379,3 +379,42 @@ class SendMessageSerializer(serializers.Serializer):
             raise serializers.ValidationError('Recipient not found')
         return value
 
+
+from .models import SavedJob
+
+
+class SavedJobSerializer(serializers.ModelSerializer):
+    job_details = JobSerializer(source='job', read_only=True)
+    job_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = SavedJob
+        fields = ['id', 'job_id', 'job_details', 'saved_at']
+        read_only_fields = ['id', 'saved_at', 'job_details']
+
+    def create(self, validated_data):
+        job_id = validated_data.pop('job_id')
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            raise serializers.ValidationError({'job_id': 'Job not found'})
+
+        validated_data['job'] = job
+        validated_data['seeker'] = self.context['request'].user
+        # Ensure only seekers can save jobs
+        if self.context['request'].user.role != 'seeker':
+            raise serializers.ValidationError('Only job seekers can save jobs')
+
+        return super().create(validated_data)
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if user.role != 'seeker':
+            raise serializers.ValidationError('Only job seekers can save jobs')
+        # On create, prevent duplicates
+        if self.instance is None:
+            job_id = data.get('job_id')
+            if SavedJob.objects.filter(seeker=user, job_id=job_id).exists():
+                raise serializers.ValidationError('Job already saved')
+        return data
+
