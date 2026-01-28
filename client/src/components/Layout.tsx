@@ -62,7 +62,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">AI JOB PORTAL</h1>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">AI JOB PORTAL</h1>
+          </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
@@ -130,8 +132,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="flex-shrink-0">
-                <h1 className="text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400">JobAI</h1>
+              <div className="flex-shrink-0 flex items-center space-x-3">
+                <img src="/src/public/assets/network_7438619.png" alt="AI Job" className="h-8 w-8" />
+                <h1 className="text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400">AI JOB PORTAL</h1>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
