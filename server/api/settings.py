@@ -207,6 +207,11 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# --- Load .env file for local development ---
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
+
 # Public site URL used for building absolute links when request is not available
 # Set via environment in production, e.g. SITE_URL=https://your-app.onrender.com
 SITE_URL = os.environ.get('SITE_URL')
@@ -219,10 +224,17 @@ if os.environ.get('CLOUDINARY_URL') or os.environ.get('CLOUDINARY_API_KEY'):
     if 'cloudinary' not in INSTALLED_APPS:
         INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
 
+
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': os.environ.get('CLOUD_NAME'),
         'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
         'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+        'RESOURCE_TYPE': 'raw',  # Ensure PDFs are treated as raw files
+        'UPLOAD_OPTIONS': {
+            'resource_type': 'raw',
+            'type': 'upload',
+            'access_mode': 'public',
+        },
     }
 
     # Use Cloudinary for storing uploaded media

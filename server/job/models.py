@@ -32,7 +32,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='seeker')
     
     # Common fields
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, max_length=255)
     bio = models.TextField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
@@ -46,7 +46,7 @@ class User(AbstractUser):
     github = models.URLField(max_length=500, blank=True, null=True)
     portfolio = models.URLField(max_length=500, blank=True, null=True)
     # Resume uploaded by seeker (PDF or other allowed types)
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True, max_length=255)
     
     # Employer-specific fields
     company = models.CharField(max_length=255, blank=True, null=True)

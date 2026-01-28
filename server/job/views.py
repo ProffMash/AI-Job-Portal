@@ -15,6 +15,7 @@ from .serializers import (
     JobSerializer, ConversationSerializer, ConversationDetailSerializer,
     MessageSerializer, SendMessageSerializer, SavedJobSerializer
 )
+import logging
 
 
 class RegisterView(APIView):
@@ -57,7 +58,6 @@ class LoginView(APIView):
                 avatar_url = None
                 if user.avatar:
                     avatar_url = request.build_absolute_uri(user.avatar.url)
-                
                 return Response({
                     'id': user.id,
                     'email': user.email,
@@ -65,7 +65,6 @@ class LoginView(APIView):
                     'name': user.name,
                     'role': user.role,
                     'avatar': avatar_url,
-                    'resume': request.build_absolute_uri(user.resume.url) if getattr(user, 'resume', None) else None,
                     'bio': user.bio,
                     'location': user.location,
                     'phone': user.phone,
@@ -249,33 +248,7 @@ class ProfileViewSet(viewsets.ViewSet):
         user.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
-
-    @action(detail=False, methods=['post'], url_path='resume')
-    def upload_resume(self, request):
-        """Upload user resume (seekers only)"""
-        user = request.user
-
-        if user.role != 'seeker':
-            return Response({'error': 'Only seekers can upload resumes'}, status=status.HTTP_403_FORBIDDEN)
-
-        if 'resume' not in request.FILES:
-            return Response({'error': 'No resume file provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-        resume = request.FILES['resume']
-
-        # Validate file type (PDF primarily)
-        allowed_types = ['application/pdf', 'application/x-pdf']
-        if resume.content_type not in allowed_types:
-            return Response({'error': 'Invalid file type. Only PDF is allowed'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Validate size (max 10MB)
-        if resume.size > 10 * 1024 * 1024:
-            return Response({'error': 'File too large. Maximum size is 10MB'}, status=status.HTTP_400_BAD_REQUEST)
-
-        user.resume = resume
-        user.save()
-        serializer = self.get_serializer(user)
-        return Response(serializer.data)
+    
 
     @action(detail=False, methods=['get'])
     def seekers(self, request):
