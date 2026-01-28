@@ -133,7 +133,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Menu className="h-6 w-6" />
               </button>
               <div className="flex-shrink-0 flex items-center space-x-3">
-                <img src="/src/public/assets/network_7438619.png" alt="AI Job" className="h-8 w-8" />
+                <img src="/assets/network_7438619.png" alt="AI Job" className="h-8 w-8" />
                 <h1 className="text-xl lg:text-2xl font-bold text-blue-600 dark:text-blue-400">AI JOB PORTAL</h1>
               </div>
             </div>
