@@ -202,6 +202,27 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Set via environment in production, e.g. SITE_URL=https://your-app.onrender.com
 SITE_URL = os.environ.get('SITE_URL')
 
+# Cloudinary configuration (optional). Use environment variables on production.
+# If CLOUDINARY_URL or CLOUDINARY_API_KEY/CLOUDINARY_API_SECRET are present,
+# enable Cloudinary storage for media files.
+if os.environ.get('CLOUDINARY_URL') or os.environ.get('CLOUDINARY_API_KEY'):
+    # add cloudinary apps if not already present
+    if 'cloudinary' not in INSTALLED_APPS:
+        INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
+
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUD_NAME'),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    }
+
+    # Use Cloudinary for storing uploaded media
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+    # When using cloudinary storage, FileField.url will return a cloud URL.
+    # MEDIA_URL can remain as-is; cloudinary_storage will generate secure URLs.
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

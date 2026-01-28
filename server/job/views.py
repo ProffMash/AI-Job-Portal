@@ -65,6 +65,7 @@ class LoginView(APIView):
                     'name': user.name,
                     'role': user.role,
                     'avatar': avatar_url,
+                    'resume': request.build_absolute_uri(user.resume.url) if getattr(user, 'resume', None) else None,
                     'bio': user.bio,
                     'location': user.location,
                     'phone': user.phone,
@@ -150,7 +151,11 @@ class ProfileViewSet(viewsets.ViewSet):
         return [IsAuthenticated()]
 
     def get_serializer(self, *args, **kwargs):
-        return ProfileSerializer(*args, **kwargs)
+        # Ensure serializer has request in context so URL fields (avatar/resume)
+        # can be built with `request.build_absolute_uri` when available.
+        context = kwargs.pop('context', {}) or {}
+        context.setdefault('request', getattr(self, 'request', None))
+        return ProfileSerializer(*args, context=context, **kwargs)
 
     def list(self, request):
         """Get the current user's profile"""
@@ -241,6 +246,33 @@ class ProfileViewSet(viewsets.ViewSet):
             )
         
         user.avatar = avatar
+        user.save()
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='resume')
+    def upload_resume(self, request):
+        """Upload user resume (seekers only)"""
+        user = request.user
+
+        if user.role != 'seeker':
+            return Response({'error': 'Only seekers can upload resumes'}, status=status.HTTP_403_FORBIDDEN)
+
+        if 'resume' not in request.FILES:
+            return Response({'error': 'No resume file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        resume = request.FILES['resume']
+
+        # Validate file type (PDF primarily)
+        allowed_types = ['application/pdf', 'application/x-pdf']
+        if resume.content_type not in allowed_types:
+            return Response({'error': 'Invalid file type. Only PDF is allowed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate size (max 10MB)
+        if resume.size > 10 * 1024 * 1024:
+            return Response({'error': 'File too large. Maximum size is 10MB'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.resume = resume
         user.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)

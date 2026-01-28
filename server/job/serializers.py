@@ -58,6 +58,7 @@ class LoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
+    resume = serializers.SerializerMethodField()
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -72,7 +73,7 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar', 'bio', 'location', 'phone', 'website',
             'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio',
             'company', 'company_size', 'industry', 'founded',
-            'is_active', 'created_at'
+            'is_active', 'created_at', 'resume'
         ]
         read_only_fields = ['id', 'email', 'created_at']
 
@@ -84,10 +85,19 @@ class UserSerializer(serializers.ModelSerializer):
             return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
         return None
 
+    def get_resume(self, obj):
+        if getattr(obj, 'resume', None):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.resume.url)
+            return f"{settings.SITE_URL.rstrip('/')}{obj.resume.url}"
+        return None
+
 
 class ProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile with additional validation"""
     avatar = serializers.SerializerMethodField()
+    resume = serializers.SerializerMethodField()
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -101,7 +111,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'avatar', 'bio', 'location', 'phone', 'website',
             'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio',
             'company', 'company_size', 'industry', 'founded',
-            'is_active', 'created_at'
+            'is_active', 'created_at', 'resume'
         ]
         read_only_fields = ['id', 'email', 'role', 'created_at', 'is_active']
 
@@ -111,6 +121,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.avatar.url)
             return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
+        return None
+
+    def get_resume(self, obj):
+        if getattr(obj, 'resume', None):
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.resume.url)
+            return f"{settings.SITE_URL.rstrip('/')}{obj.resume.url}"
         return None
 
     def validate_skills(self, value):
