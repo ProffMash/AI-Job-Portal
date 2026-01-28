@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User } from '../types';
-import { login as apiLogin, register as apiRegister, logout as apiLogout, RegisterData, LoginResponse } from '../API/authApi';
+import { login as apiLogin, register as apiRegister, logout as apiLogout, RegisterData } from '../API/authApi';
 import { setAuthToken } from '../API/apiClient';
 
 interface ExtendedAuthState extends AuthState {
@@ -130,14 +130,7 @@ export const useAuthStore = create<ExtendedAuthState>()(
     }),
     {
       name: 'auth-storage',
-      onRehydrate: (state) => {
-        // Called after rehydration - restore token to axios headers
-        return (rehydratedState, error) => {
-          if (!error && rehydratedState?.token) {
-            setAuthToken(rehydratedState.token);
-          }
-        };
-      }
+      // If you need to restore the token after rehydration, use a custom effect or do it after store initialization.
     }
   )
 );

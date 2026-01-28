@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// const API_BASE = 'http://localhost:8000/api';
+// export const API_BASE = 'http://localhost:8000/api';
 export const API_BASE = 'https://ai-job-portal-r30p.onrender.com/api';
 
 const api = axios.create({

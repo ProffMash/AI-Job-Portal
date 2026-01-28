@@ -36,7 +36,6 @@ export interface ApplicationResponse {
     portfolio: string | null;
   };
   cover_letter: string | null;
-  resume_url: string | null;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   applied_at: string;
   updated_at: string;

@@ -47,7 +47,7 @@ export interface Application {
   appliedAt: string;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   coverLetter?: string;
-  resumeUrl?: string;
+  // resumeUrl removed
   updatedAt?: string;
 }
 
