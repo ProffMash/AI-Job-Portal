@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, DollarSign, Users, Loader2 } from 'lucide-react';
+import { MapPin, Clock, Users, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 interface JobCardJob {
@@ -85,7 +85,6 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, showApplicants =
             )}
             {job.salary && (
               <div className="flex items-center">
-                <DollarSign className="h-4 w-4 mr-1" />
                 {job.salary}
               </div>
             )}
