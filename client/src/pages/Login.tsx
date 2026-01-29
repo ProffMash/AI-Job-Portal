@@ -54,7 +54,7 @@ export const Login: React.FC = () => {
             <p className="text-sm text-gray-700 text-center">
               <span className="font-medium">Already have an account?</span> Sign in below.
               <br />
-              <span className="font-medium">New to JobAI?</span>{' '}
+              <span className="font-medium">New to AI JOB PORTAL?</span>{' '}
               <Link
                 to="/register"
                 className="text-blue-600 hover:text-blue-500 font-medium underline"

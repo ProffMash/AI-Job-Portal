@@ -113,7 +113,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         return None
 
     def get_resume(self, obj):
-        # resume removed
         return None
 
     def validate_skills(self, value):

@@ -4,7 +4,6 @@ import { useAuthStore } from '../stores/authStore';
 import { User as UserType } from '../types';
 import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building, Loader2, AtSign, Calendar } from 'lucide-react';
 import { updateProfile as apiUpdateProfile, uploadAvatar, UpdateProfileData } from '../API/profileApi';
-// PDFViewer removed (resume feature disabled)
 import { clearSeekerRecommendationsCache, clearApplicantScoresCache } from '../API/aiRecommendationApi';
 
 export const Profile: React.FC = () => {
