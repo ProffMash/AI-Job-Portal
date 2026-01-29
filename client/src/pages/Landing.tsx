@@ -89,7 +89,7 @@ export const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose JobAI?
+              Why Choose Our AI Powered Platform ?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Our platform combines cutting-edge AI technology with intuitive design to create 
