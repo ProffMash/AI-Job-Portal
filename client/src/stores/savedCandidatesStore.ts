@@ -23,6 +23,7 @@ export interface SavedCandidate {
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  resume?: string;
   phone?: string;
   notes?: string;
   appliedFor?: string;
@@ -33,7 +34,8 @@ interface SavedCandidatesState {
   isLoading: boolean;
   error: string | null;
   fetchCandidates: () => Promise<void>;
-  addCandidate: (candidate: Omit<SavedCandidate, 'savedAt' | 'notes' | 'appliedFor'>) => Promise<void>;
+  // Allow resume when adding a candidate from other components
+  addCandidate: (candidate: Omit<SavedCandidate, 'savedAt' | 'notes' | 'appliedFor'> & { resume?: string }) => Promise<void>;
   removeCandidate: (id: number) => Promise<void>;
   isShortlisted: (id: number) => boolean;
   updateNotes: (id: number, notes: string) => Promise<void>;
@@ -55,6 +57,7 @@ const transformCandidate = (response: SavedCandidateResponse): SavedCandidate =>
     savedAt: response.saved_at,
     email: details.email,
     bio: details.bio || undefined,
+    resume: details.resume || undefined,
     linkedin: details.linkedin || undefined,
     github: details.github || undefined,
     portfolio: details.portfolio || undefined,

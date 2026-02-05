@@ -34,6 +34,7 @@ export interface ApplicationResponse {
     linkedin: string | null;
     github: string | null;
     portfolio: string | null;
+    resume?: string | null;
   };
   cover_letter: string | null;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';

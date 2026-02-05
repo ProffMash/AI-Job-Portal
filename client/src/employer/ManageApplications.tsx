@@ -5,6 +5,7 @@ import { getAllApplications, updateApplicationStatus, deleteApplication, Applica
 import { fetchMyJobs, Job } from '../API/jobApi';
 import { getApplicantMatchScores, ApplicantMatchResult } from '../API/aiRecommendationApi';
 import { ChatModal } from '../components/ChatModal';
+import { getAvatarUrl } from '../API/profileApi';
 
 type ApplicationStatus = 'all' | 'pending' | 'reviewed' | 'accepted' | 'rejected';
 
@@ -604,6 +605,19 @@ export const ManageApplications: React.FC = () => {
                       <Link className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
                       <a href={viewingProfile.seeker_details.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline truncate">
                         Portfolio
+                      </a>
+                    </div>
+                  )}
+                  {viewingProfile.seeker_details.resume && (
+                    <div className="flex items-center text-sm">
+                      <Link className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-2" />
+                      <a
+                        href={getAvatarUrl(viewingProfile.seeker_details.resume) || viewingProfile.seeker_details.resume}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline truncate"
+                      >
+                        View Resume
                       </a>
                     </div>
                   )}

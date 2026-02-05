@@ -29,6 +29,7 @@ export interface UserProfile {
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  resume?: string;
   company?: string;
   company_size?: string;
   industry?: string;
@@ -49,6 +50,7 @@ export interface UpdateProfileData {
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  resume?: string;
   company?: string;
   company_size?: string;
   industry?: string;

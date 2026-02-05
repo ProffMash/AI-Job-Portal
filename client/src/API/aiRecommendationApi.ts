@@ -697,7 +697,7 @@ function getFallbackApplicantScores(
 
 const TALENT_POOL_CACHE_KEY = 'ai_talent_pool_cache';
 
-interface TalentPoolMatchResult {
+export interface TalentPoolMatchResult {
   seekerId: number;
   matchScore: number;
   matchReason: string;

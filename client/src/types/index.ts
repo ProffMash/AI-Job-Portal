@@ -15,6 +15,7 @@ export interface User {
   linkedin?: string;
   github?: string;
   portfolio?: string;
+  resume?: string;
   company?: string;
   companySize?: string;
   industry?: string;

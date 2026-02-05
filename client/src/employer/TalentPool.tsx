@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { ChatModal } from '../components/ChatModal';
 import { Search, UserPlus, MapPin, Briefcase, Star, StarOff, Mail, ExternalLink, Filter, GraduationCap, Code, Loader2, X, Linkedin, Github, Globe, Phone, MessageCircle, Sparkles, Brain } from 'lucide-react';
-import { fetchSeekers, UserProfile } from '../API/profileApi';
+import { fetchSeekers, UserProfile, getAvatarUrl } from '../API/profileApi';
 import { fetchMyJobs, Job } from '../API/jobApi';
 import { useSavedCandidatesStore } from '../stores/savedCandidatesStore';
 import { getTalentPoolMatchScores, TalentPoolMatchResult } from '../API/aiRecommendationApi';
@@ -17,6 +17,7 @@ interface Candidate {
   experience: string;
   education: string;
   matchScore: number;
+  resume?: string;
   matchReason?: string;
   matchingSkills?: string[];
   bestMatchingJob?: { id: number | string; title: string };
@@ -180,6 +181,17 @@ const ProfileModal: React.FC<{
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 )}
+                {candidate.resume && (
+                  <a
+                    href={candidate.resume}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
+                    View Resume
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -268,6 +280,7 @@ export const TalentPool: React.FC = () => {
           title: seeker.bio?.split('\n')[0] || 'Job Seeker',
           location: seeker.location || 'Not specified',
           avatar: seeker.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(seeker.name || seeker.username)}&background=6366f1&color=fff`,
+          resume: seeker.resume ? getAvatarUrl(seeker.resume) : undefined,
           skills: seeker.skills || [],
           experience: seeker.experience || 'Not specified',
           education: seeker.education || 'Not specified',
@@ -355,6 +368,7 @@ export const TalentPool: React.FC = () => {
           title: candidate.title,
           location: candidate.location,
           avatar: candidate.avatar,
+          resume: candidate.resume,
           skills: candidate.skills,
           experience: candidate.experience,
           education: candidate.education,

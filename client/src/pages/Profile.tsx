@@ -36,6 +36,7 @@ export const Profile: React.FC = () => {
         linkedin: editedUser.linkedin,
         github: editedUser.github,
         portfolio: editedUser.portfolio,
+        resume: editedUser.resume,
         company: editedUser.company,
         company_size: editedUser.companySize,
         industry: editedUser.industry,
@@ -58,6 +59,7 @@ export const Profile: React.FC = () => {
         linkedin: updatedProfile.linkedin,
         github: updatedProfile.github,
         portfolio: updatedProfile.portfolio,
+        resume: updatedProfile.resume,
         company: updatedProfile.company,
         companySize: updatedProfile.company_size,
         industry: updatedProfile.industry,
@@ -216,7 +218,7 @@ export const Profile: React.FC = () => {
                     src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff&size=96`}
                     alt={user.name}
                   />
-                  {isEditing && (
+                    {isEditing && (
                     <label className="absolute bottom-3 right-0 bg-blue-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
                       <Edit3 className="h-3 w-3" />
                       <input
@@ -228,8 +230,26 @@ export const Profile: React.FC = () => {
                       />
                     </label>
                   )}
-                </div>
-                {/* Resume feature removed */}
+                  </div>
+                  {/* Resume link */}
+                  {isEditing ? (
+                    <input
+                      type="url"
+                      value={editedUser.resume || ''}
+                      onChange={(e) => handleInputChange('resume', e.target.value)}
+                      placeholder="Resume URL (https://...)"
+                      className="w-full text-sm text-center border border-gray-300 rounded-md px-2 py-1 mb-2"
+                    />
+                  ) : (
+                    user.resume && (
+                      <div className="flex items-center justify-center mb-2">
+                        <a href={user.resume} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center">
+                          Resume
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </a>
+                      </div>
+                    )
+                  )}
                 {isEditing ? (
                   <input
                     type="text"
