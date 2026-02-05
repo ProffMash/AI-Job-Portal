@@ -58,6 +58,7 @@ class LoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
+    resume = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -70,7 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'username', 'name', 'role',
             'avatar', 'bio', 'location', 'phone', 'website',
-            'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio',
+            'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio', 'resume',
             'company', 'company_size', 'industry', 'founded',
             'is_active', 'created_at'
         ]
@@ -84,9 +85,12 @@ class UserSerializer(serializers.ModelSerializer):
             return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
         return None
 
+    # `resume` is a direct URL field on the model and is handled by the URLField above
+
 class ProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile with additional validation"""
     avatar = serializers.SerializerMethodField()
+    resume = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     skills = serializers.ListField(
         child=serializers.CharField(max_length=100),
         required=False,
@@ -98,7 +102,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'username', 'name', 'role',
             'avatar', 'bio', 'location', 'phone', 'website',
-            'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio',
+            'skills', 'experience', 'education', 'linkedin', 'github', 'portfolio', 'resume',
             'company', 'company_size', 'industry', 'founded',
             'is_active', 'created_at'
         ]
@@ -112,8 +116,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             return f"{settings.SITE_URL.rstrip('/')}{obj.avatar.url}"
         return None
 
-    def get_resume(self, obj):
-        return None
+    # `resume` is writable via the URLField above
 
     def validate_skills(self, value):
         """Ensure skills is a list of strings"""

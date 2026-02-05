@@ -45,8 +45,8 @@ class User(AbstractUser):
     linkedin = models.URLField(max_length=500, blank=True, null=True)
     github = models.URLField(max_length=500, blank=True, null=True)
     portfolio = models.URLField(max_length=500, blank=True, null=True)
-    # Resume uploaded by seeker (PDF or other allowed types)
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True, max_length=255)
+    # Resume as an external link (e.g. hosted PDF or resume URL)
+    resume = models.URLField(max_length=500, blank=True, null=True)
     
     # Employer-specific fields
     company = models.CharField(max_length=255, blank=True, null=True)
