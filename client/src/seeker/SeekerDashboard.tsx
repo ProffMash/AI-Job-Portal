@@ -210,18 +210,6 @@ export const SeekerDashboard: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => setUseAIRecommendations(!useAIRecommendations)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  useAIRecommendations ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    useAIRecommendations ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
             </div>
           </div>
         )}
