@@ -29,6 +29,7 @@ class RegisterView(APIView):
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
                 'message': 'User registered successfully',
+                    'profile_update_notice': 'Please update your profile for better job matching.',
                 'token': token.key,
                 'user': {
                     'id': user.id,
@@ -161,12 +162,18 @@ class ProfileViewSet(viewsets.ViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get', 'put', 'patch'], url_path='me')
+    @action(detail=False, methods=['get', 'put', 'patch', 'delete'], url_path='me')
     def me(self, request):
         """Get or update the current user's profile"""
         if request.method == 'GET':
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
+
+        if request.method == 'DELETE':
+            user = request.user
+            # Permanently remove the account and all related records via CASCADE.
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         
         partial = request.method == 'PATCH'
         serializer = self.get_serializer(request.user, data=request.data, partial=partial)
