@@ -118,3 +118,9 @@ export async function updateCompanyInfo(data: {
   invalidateCacheFor('users/me/', undefined);
   return response.data;
 }
+
+// Delete current authenticated account
+export async function deleteMyAccount(): Promise<void> {
+  await api.delete('profile/me/');
+  invalidateCacheFor('users/me/', undefined);
+}

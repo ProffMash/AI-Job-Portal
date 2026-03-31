@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { Home, Briefcase, User, LogOut, Users, MessageCircle, Bookmark, FileText, Star, Menu, X } from 'lucide-react';
+import { Home, Briefcase, User, LogOut, Users, MessageCircle, Bookmark, FileText, Star, Menu, X, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, showProfileUpdateNotice, profileUpdateNoticeText, clearProfileUpdateNotice } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -157,6 +157,40 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </div>
       </header>
+
+      {showProfileUpdateNotice && (
+        <div className="bg-amber-50 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex items-start sm:items-center text-amber-800 dark:text-amber-300">
+                <AlertCircle className="h-4 w-4 mr-2 mt-0.5 sm:mt-0 flex-shrink-0" />
+                <p className="text-sm">
+                  {profileUpdateNoticeText || 'Please update your profile to unlock better recommendations.'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {location.pathname !== '/profile' && (
+                  <button
+                    onClick={() => {
+                      clearProfileUpdateNotice();
+                      navigate('/profile');
+                    }}
+                    className="text-sm font-medium px-3 py-1.5 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-800/40 dark:hover:bg-amber-800/60 dark:text-amber-200"
+                  >
+                    Update Profile
+                  </button>
+                )}
+                <button
+                  onClick={clearProfileUpdateNotice}
+                  className="text-sm font-medium px-3 py-1.5 rounded-md text-amber-800 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-800/30"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex">
         {/* Desktop Sidebar */}

@@ -2,16 +2,19 @@ import React, { useState } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuthStore } from '../stores/authStore';
 import { User as UserType } from '../types';
-import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building, Loader2, AtSign, Calendar } from 'lucide-react';
-import { updateProfile as apiUpdateProfile, uploadAvatar, UpdateProfileData } from '../API/profileApi';
+import { User, Mail, Phone, MapPin, Globe, Briefcase, GraduationCap, CreditCard as Edit3, Save, X, Plus, Linkedin, Github, ExternalLink, Building, Loader2, AtSign, Calendar, Trash2 } from 'lucide-react';
+import { updateProfile as apiUpdateProfile, uploadAvatar, UpdateProfileData, deleteMyAccount } from '../API/profileApi';
 import { clearSeekerRecommendationsCache, clearApplicantScoresCache } from '../API/aiRecommendationApi';
+import { useNavigate } from 'react-router-dom';
 
 export const Profile: React.FC = () => {
-  const { user, updateProfile } = useAuthStore();
+  const { user, updateProfile, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<UserType | undefined>(user ?? undefined);
   const [newSkill, setNewSkill] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -138,6 +141,35 @@ export const Profile: React.FC = () => {
       ...prev,
       skills: prev.skills?.filter((skill: string) => skill !== skillToRemove) || []
     }) : prev);
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await deleteMyAccount();
+      clearSeekerRecommendationsCache();
+      clearApplicantScoresCache();
+      logout();
+      navigate('/');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error ||
+        err.response?.data?.detail ||
+        'Failed to delete account. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   const isSeeker = user.role === 'seeker';
@@ -590,6 +622,38 @@ export const Profile: React.FC = () => {
                 </div>
               </>
             )}
+
+            <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
+              <h3 className="text-lg font-semibold text-red-700 mb-2 flex items-center">
+                <Trash2 className="h-5 w-5 mr-2" />
+                Delete Account
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Deleting your account will permanently remove your access. This action cannot be undone.
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isSaving || isEditing || isDeletingAccount}
+                className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete My Account
+                  </>
+                )}
+              </button>
+              {isEditing && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Save or cancel profile editing before deleting your account.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

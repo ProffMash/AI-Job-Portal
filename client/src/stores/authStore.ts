@@ -6,8 +6,11 @@ import { setAuthToken } from '../API/apiClient';
 
 interface ExtendedAuthState extends AuthState {
   token: string | null;
+  showProfileUpdateNotice: boolean;
+  profileUpdateNoticeText: string | null;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
+  clearProfileUpdateNotice: () => void;
   loginWithApi: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   registerWithApi: (data: RegisterData) => Promise<{ success: boolean; user?: User; error?: string }>;
   initializeAuth: () => void;
@@ -19,6 +22,8 @@ export const useAuthStore = create<ExtendedAuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      showProfileUpdateNotice: false,
+      profileUpdateNoticeText: null,
       
       setUser: (user: User | null) => {
         set({ user, isAuthenticated: !!user });
@@ -27,6 +32,10 @@ export const useAuthStore = create<ExtendedAuthState>()(
       setToken: (token: string | null) => {
         set({ token });
         setAuthToken(token);
+      },
+
+      clearProfileUpdateNotice: () => {
+        set({ showProfileUpdateNotice: false, profileUpdateNoticeText: null });
       },
       
       updateProfile: (updates: Partial<User>) => {
@@ -67,7 +76,13 @@ export const useAuthStore = create<ExtendedAuthState>()(
             createdAt: response.created_at,
           };
           
-          set({ user, token: response.token, isAuthenticated: true });
+          set({
+            user,
+            token: response.token,
+            isAuthenticated: true,
+            showProfileUpdateNotice: false,
+            profileUpdateNoticeText: null,
+          });
           setAuthToken(response.token);
           
           return { success: true, user };
@@ -90,7 +105,13 @@ export const useAuthStore = create<ExtendedAuthState>()(
               role: response.user.role as 'seeker' | 'employer',
             };
             
-            set({ user, token: response.token, isAuthenticated: true });
+            set({
+              user,
+              token: response.token,
+              isAuthenticated: true,
+              showProfileUpdateNotice: true,
+              profileUpdateNoticeText: response.profile_update_notice || 'Complete your profile to get better matches and recommendations.',
+            });
             setAuthToken(response.token);
             
             return { success: true, user };
@@ -118,7 +139,13 @@ export const useAuthStore = create<ExtendedAuthState>()(
       logout: () => {
         apiLogout();
         setAuthToken(null);
-        set({ user: null, token: null, isAuthenticated: false });
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          showProfileUpdateNotice: false,
+          profileUpdateNoticeText: null,
+        });
       },
       
       initializeAuth: () => {

@@ -45,6 +45,7 @@ export interface LoginData {
 export interface AuthResponse {
   message: string;
   token: string;
+  profile_update_notice?: string;
   user?: {
     id: number;
     email: string;
