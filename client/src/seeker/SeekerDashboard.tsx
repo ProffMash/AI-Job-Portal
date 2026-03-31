@@ -21,7 +21,7 @@ export const SeekerDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [applyingToJob, setApplyingToJob] = useState<number | string | null>(null);
-  const [useAIRecommendations, setUseAIRecommendations] = useState(true);
+  const [useAIRecommendations] = useState(true);
 
   // Fetch jobs and applications on mount
   useEffect(() => {
